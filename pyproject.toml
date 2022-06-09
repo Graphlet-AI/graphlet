@@ -1,11 +1,12 @@
 [tool.poetry]
 name = "graphlet"
 version = "0.1.0"
-description = ""
-authors = ["Russell Jurney <russell.jurney@gmail.com>"]
+description = "Graphlet AI Knowledge Graph Factory"
+authors = ["Russell Jurney <rjurney@graphlet.ai>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
+pyspark = "^3.2.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
