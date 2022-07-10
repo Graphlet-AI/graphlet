@@ -1,3 +1,12 @@
 [flake8]
 max-line-length = 120
-ignore = E203
+ignore =
+    # Whitespace before ':' (E203)
+    E203
+    # Line lengths are recommended to be no greater than 79 characters. (E501)
+    E501
+    # Line break occurred before a binary operator (W503)
+    W503
+    # Line break occurred after a binary operator (W504) - both are required
+    W504
+max-complexity = 10
