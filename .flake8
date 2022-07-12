@@ -1,4 +1,5 @@
 [flake8]
+min_python_version = 3.8.0
 max-line-length = 120
 ignore =
     # Whitespace before ':' (E203)
@@ -10,3 +11,9 @@ ignore =
     # Line break occurred after a binary operator (W504) - both are required
     W504
 max-complexity = 10
+# Enforce numpy docstring format
+docstring-convention = numpy
+# Spell check comments and variable names
+dictionaries = en_US,python,technical,pandas
+# Make ppl use f-strings
+format-greedy = 2
