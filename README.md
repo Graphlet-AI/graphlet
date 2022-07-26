@@ -6,6 +6,10 @@
 
 This is the PyPi module for the Graphlet AI Knowledge Graph Factory. Our mission is to provide a Spark-based wizard for building large knowledge graphs.
 
+## License
+
+This project is created and published under the [Apache License, version 2.0](https://www.apache.org/licenses/LICENSE-2.0).
+
 ## Conventions
 
 This project uses pre-commit hooks to enforce its conventions: git will reject commits that don't comply with our various flake8 plugins.
