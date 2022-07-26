@@ -2,7 +2,7 @@
 
 This is the PyPi module for the Graphlet AI Knowledge Graph Factory.
 
-![Orbits the Squirrel has 5 orbits. Everyone knows this about squirrels!](images/graphlet_logo.png)
+<img src="images/graphlet_logo.png" alt="Our mascot Orbits the Squirrel has 5 orbits. Everyone knows this about squirrels!" width="400"/>
 
 ## Conventions
 
