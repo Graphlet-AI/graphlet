@@ -58,7 +58,29 @@ If you do edit [pyproject.toml](pyproject.toml) you must update to regenerate [p
 poetry update
 ```
 
-
 ### Pre-Commit Hooks
 
 We use [pre-commit](https://pre-commit.com/) to run [black](https://github.com/psf/black), [flake8](https://flake8.pycqa.org/en/latest/), [isort](https://pycqa.github.io/isort/) and [mypy](http://mypy-lang.org/). This is configured in [.pre-commit-config.yaml](.pre-commit-config.yaml).
+
+### VSCode Settings
+
+The following [VSCode](https://code.visualstudio.com/) settings are defined for the project in [.vscode/settings.json](.vscode/settings.json) to ensure code is formatted consistent with our pre-commit hooks:
+
+```json
+{
+    "editor.rulers": [90, 120],
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.python",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {"source.organizeImports": true},
+    },
+    "python.jediEnabled": false,
+    "python.languageServer": "Pylance",
+    "python.linting.enabled": true,
+    "python.formatting.provider": "black",
+    "python.sortImports.args": ["--profile", "black"],
+    "python.linting.pylintEnabled": false,
+    "python.linting.flake8Enabled": true,
+    "autoDocstring.docstringFormat": "numpy",
+}
+```
