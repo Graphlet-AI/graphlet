@@ -1,10 +1,10 @@
 # Graphlet AI Knowledge Graph Factory
 
-This is the PyPi module for the Graphlet AI Knowledge Graph Factory.
-
 <p align="center">
     <img src="images/graphlet_logo.png" alt="Our mascot Orbits the Squirrel has 5 orbits. Everyone knows this about squirrels!" width="400"/>
 </p>
+
+This is the PyPi module for the Graphlet AI Knowledge Graph Factory. Our mission is to provide a Spark-based wizard for building large knowledge graphs.
 
 ## Conventions
 
