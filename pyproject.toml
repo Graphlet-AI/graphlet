@@ -5,7 +5,7 @@ description = "Graphlet AI Knowledge Graph Factory"
 authors = ["Russell Jurney <rjurney@graphlet.ai>"]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
 pyspark = "^3.2.1"
 pydantic = "^1.9.1"
 pydantic-spark = "^0.1.1"
