@@ -2,6 +2,8 @@
 
 This is the PyPi module for the Graphlet AI Knowledge Graph Factory.
 
+![Orbits the Squirrel has 5 orbits. Everyone knows this about squirrels!](images/graphlet_logo.png)
+
 ## Conventions
 
 This project uses pre-commit hooks to enforce its conventions: git will reject commits that don't comply with our various flake8 plugins.
