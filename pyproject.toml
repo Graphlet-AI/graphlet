@@ -3,6 +3,11 @@ name = "graphlet"
 version = "0.1.0"
 description = "Graphlet AI Knowledge Graph Factory"
 authors = ["Russell Jurney <rjurney@graphlet.ai>"]
+packages = [
+    { include = "graphlet" }
+]
+license = "APACHE-2.0"
+
 
 [tool.poetry.dependencies]
 python = "^3.10"
