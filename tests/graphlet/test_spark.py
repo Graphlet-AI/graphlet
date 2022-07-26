@@ -1,1 +1,1 @@
-from graphlet import spark.
+"""Implements unit tests of Graphlet's spark module."""

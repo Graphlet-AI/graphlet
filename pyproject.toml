@@ -16,6 +16,7 @@ pytest = "^5.2"
 black = "^22.6.0"
 flake8 = "^4.0.1"
 isort = "^5.10.1"
+mypy = ">=0.971"
 flake8-docstrings = "^1.6.0"
 pydocstyle = "^6.1.1"
 flake8-spellcheck = "^0.28.0"
@@ -38,7 +39,6 @@ build-backend = "poetry.core.masonry.api"
 line-length = 120
 target-version = ['py310']
 include = ['graphlet', 'tests']
-exclude = []
 
 [tool.isort]
 profile = "black"

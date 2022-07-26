@@ -10,6 +10,10 @@ ignore =
     W503
     # Line break occurred after a binary operator (W504) - both are required
     W504
+    # Ignore mispelled words
+    SC200
+    # Missing docstring in public package
+    D104
 max-complexity = 10
 # Enforce numpy docstring format
 docstring-convention = numpy
