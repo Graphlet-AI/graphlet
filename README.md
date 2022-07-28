@@ -14,7 +14,7 @@ This project is created and published under the [Apache License, version 2.0](ht
 
 This project uses pre-commit hooks to enforce its conventions: git will reject commits that don't comply with our various flake8 plugins.
 
-We use [numpy docstring format](https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard) on all Python classes and functions, which is enforced [pydocstring](https://github.com/robodair/pydocstring) and [flake8-docstrings](https://gitlab.com/pycqa/flake8-docstrings).
+We use [numpy docstring format](https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard) on all Python classes and functions, which is enforced by [pydocstring](https://github.com/robodair/pydocstring) and [flake8-docstrings](https://gitlab.com/pycqa/flake8-docstrings).
 
 We run `black`, `flake8`, `isort` and `mypy` in [.pre-commit-config.yaml](.pre-commit-config.yaml). All of these except flake8 are configured in [pyproject.toml](pyproject.toml) except for Flake8, which is configured in [.flake8](.flake8).
 
