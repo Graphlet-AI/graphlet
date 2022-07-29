@@ -23,7 +23,6 @@ Flake8 uses the following plugins. We will consider adding any exceptions to the
 ```toml
 flake8-docstrings = "^1.6.0"
 pydocstyle = "^6.1.1"
-flake8-spellcheck = "^0.28.0"
 flake8-simplify = "^0.19.2"
 flake8-unused-arguments = "^0.0.10"
 flake8-class-attributes-order = "^0.1.3"
