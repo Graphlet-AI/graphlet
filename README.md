@@ -8,7 +8,7 @@ This is the PyPi module for the Graphlet AI Knowledge Graph Factory. Our mission
 
 ## Core Features
 
-This project is new, the first two features we are building are:
+This project is new, some features we are building are:
 
 1) [Create a Pydantic/PySpark base class for transforming multiple entities into a uniform ontology](https://github.com/Graphlet-AI/graphlet/issues/1)
 
