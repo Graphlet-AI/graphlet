@@ -1,7 +1,7 @@
 # Graphlet AI Knowledge Graph Factory
 
 <p align="center">
-    <img src="images/graphlet_logo.png" alt="Our mascot Orbits the Squirrel has 5 orbits. Everyone knows this about squirrels!" width="300"/>
+    <img src="https://github.com/Graphlet-AI/graphlet/raw/main/images/graphlet_logo.png" alt="Our mascot Orbits the Squirrel has 5 orbits. Everyone knows this about squirrels!" width="300"/>
 </p>
 
 This is the PyPi module for the Graphlet AI Knowledge Graph Factory. Our mission is to create a Spark-based wizard for building large knowledge graphs that makes them easier to build for fewer dolalrs and with less risk.
@@ -20,7 +20,7 @@ This project is new, some features we are building are:
 
 ## System Architecture
 
-![Graphlet AI System Architecture](images/System-Architecture---From-OmniGraffle.png)
+![Graphlet AI System Architecture](https://github.com/Graphlet-AI/graphlet/raw/main/images/System-Architecture---From-OmniGraffle.png)
 
 ## License
 
