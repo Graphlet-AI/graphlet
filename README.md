@@ -1,10 +1,26 @@
 # Graphlet AI Knowledge Graph Factory
 
 <p align="center">
-    <img src="images/graphlet_logo.png" alt="Our mascot Orbits the Squirrel has 5 orbits. Everyone knows this about squirrels!" width="400"/>
+    <img src="https://github.com/Graphlet-AI/graphlet/raw/main/images/graphlet_logo.png" alt="Our mascot Orbits the Squirrel has 5 orbits. Everyone knows this about squirrels!" width="300"/>
 </p>
 
-This is the PyPi module for the Graphlet AI Knowledge Graph Factory. Our mission is to build an Apache 2.0 licensed Spark-based wizard for building large knowledge graphs.
+This is the PyPi module for the Graphlet AI Knowledge Graph Factory. Our mission is to create a Spark-based wizard for building large knowledge graphs that makes them easier to build for fewer dolalrs and with less risk.
+
+## Core Features
+
+This project is new, some features we are building are:
+
+1) [Create a Pydantic/PySpark base class for transforming multiple entities into a uniform ontology](https://github.com/Graphlet-AI/graphlet/issues/1)
+
+2) [Create a generic, configurable system for entity resolution of heterogeneous networks](https://github.com/Graphlet-AI/graphlet/issues/3)
+
+3) [Create an efficient pipeline for computing network motifs and aggregating higher order networks](https://github.com/Graphlet-AI/graphlet/issues/5)
+
+4) [Implement efficient motif searching via neural subgraph matching](https://github.com/Graphlet-AI/graphlet/issues/4)
+
+## System Architecture
+
+![Graphlet AI System Architecture](https://github.com/Graphlet-AI/graphlet/raw/main/images/System-Architecture---From-OmniGraffle.png)
 
 ## License
 

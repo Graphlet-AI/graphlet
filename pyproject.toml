@@ -1,13 +1,52 @@
 [tool.poetry]
 name = "graphlet"
-version = "0.1.0"
+version = "0.1.1"
 description = "Graphlet AI Knowledge Graph Factory"
 authors = ["Russell Jurney <rjurney@graphlet.ai>"]
 packages = [
     { include = "graphlet" }
 ]
 license = "APACHE-2.0"
-
+readme = "README.md"
+homepage = "https://graphlet.ai"
+repository = "https://github.com/Graphlet-AI/graphlet"
+keywords = [
+    "graphlet",
+    "motif",
+    "graph",
+    "network",
+    "knowledge graph",
+    "entity resolution",
+    "spark",
+    "pyspark",
+    "etl",
+]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Environment :: Console",
+    "Framework :: Flake8",
+    "Framework :: Pytest",
+    "Framework :: tox",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Database",
+    "Topic :: Database :: Database Engines/Servers",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Software Development",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Utilities",
+    "Typing :: Typed",
+]
+include = ["LICENSE"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -17,7 +56,7 @@ pydantic-spark = "^0.1.1"
 typeguard = "^2.13.3"
 
 [tool.poetry.dev-dependencies]
-pytest = "^5.2"
+pytest = "^7.1.2"
 black = "^22.6.0"
 flake8 = "^4.0.1"
 isort = "^5.10.1"
