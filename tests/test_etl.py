@@ -14,3 +14,12 @@ def spark_session(app_name="PyTest fixture SparkSession") -> SparkSession:
         A SparkSession in a local environment
     """
     return SparkSession.builder.appName(app_name).getOrCreate()
+
+
+def test_spark_session_fixture(spark_session: SparkSession) -> None:
+    """test_spark_session Make sure the SparkSession is created."""
+
+    data = [("a", "b"), ("c", "d")]
+    df = spark_session.createDataFrame(data, ["x", "y"])
+    assert df.count() == 2
+    assert df.collect() == [("a", "b"), ("c", "d")]
