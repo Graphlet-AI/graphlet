@@ -1,5 +1,6 @@
-"""Contains a base class for entities within an ontology to make ETL easier."""
+"""Contains base classes for entities within a property graph ontology to make ETL easier."""
 
+from enum import Enum
 from uuid import UUID, uuid4
 
 from pydantic import Field
@@ -13,3 +14,17 @@ class EntityBase(SparkBase):
     """
 
     id_: UUID = Field(default_factory=uuid4)
+    type_: Enum
+
+
+class NodeBase(EntityBase):
+    """NodeBase - base class for nodes."""
+
+    pass
+
+
+class EdgeBase(EntityBase):
+    """EdgeBase - base class for edges."""
+
+    src: UUID
+    dst: UUID
