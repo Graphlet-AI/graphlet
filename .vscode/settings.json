@@ -1,15 +1,23 @@
 {
-    "editor.rulers": [90, 120],
+    "editor.rulers": [
+        90,
+        120
+    ],
     "[python]": {
         "editor.defaultFormatter": "ms-python.python",
         "editor.formatOnSave": true,
-        "editor.codeActionsOnSave": {"source.organizeImports": true},
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": true
+        },
     },
     "python.jediEnabled": false,
     "python.languageServer": "Pylance",
     "python.linting.enabled": true,
     "python.formatting.provider": "black",
-    "python.sortImports.args": ["--profile", "black"],
+    "python.sortImports.args": [
+        "--profile",
+        "black"
+    ],
     "python.linting.pylintEnabled": false,
     "python.linting.flake8Enabled": true,
     "autoDocstring.docstringFormat": "numpy",
