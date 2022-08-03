@@ -1,6 +1,6 @@
 """Implements unit tests of Graphlet's spark module."""
 
-import pytest  # type: ignore
+import pytest
 from pyspark.sql import SparkSession
 
 
