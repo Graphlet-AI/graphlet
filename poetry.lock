@@ -769,6 +769,14 @@ doc = ["sphinx-rtd-theme", "sphinx-autodoc-typehints (>=1.2.0)"]
 test = ["pytest", "typing-extensions", "mypy"]
 
 [[package]]
+name = "types-tqdm"
+version = "4.64.4"
+description = "Typing stubs for tqdm"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "types-ujson"
 version = "5.4.0"
 description = "Typing stubs for ujson"
@@ -836,7 +844,7 @@ python-versions = ">=3.4"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "0324946ecc949d487b4ed3c51d88babfeca3ac7e5c126b4a189bb4e11f435811"
+content-hash = "7e534048bdf56a8a890f55cb2405c139d3f045f6f828f960a5bf55007cac0200"
 
 [metadata.files]
 appnope = [
@@ -1057,6 +1065,7 @@ traitlets = [
     {file = "traitlets-5.3.0.tar.gz", hash = "sha256:0bb9f1f9f017aa8ec187d8b1b2a7a6626a2a1d877116baba52a129bfa124f8e2"},
 ]
 typeguard = []
+types-tqdm = []
 types-ujson = []
 types-xmltodict = []
 typing-extensions = [
