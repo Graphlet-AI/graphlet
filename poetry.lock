@@ -760,6 +760,14 @@ optional = false
 python-versions = ">=3.7"
 
 [[package]]
+name = "ujson"
+version = "5.4.0"
+description = "Ultra fast JSON encoder and decoder for Python"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[[package]]
 name = "virtualenv"
 version = "20.16.2"
 description = "Virtual Python Environment builder"
@@ -788,14 +796,14 @@ python-versions = "*"
 name = "xmltodict"
 version = "0.13.0"
 description = "Makes working with XML feel like you are working with JSON"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.4"
 
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "ababb7b3875854072200ddd65176a12f9080eb4be49a010a18be070f400cbad3"
+content-hash = "ed8ac485c896fec83225e3a4a273e650801b26993ea650b5b1bbf290fc8ab3ae"
 
 [metadata.files]
 appnope = [
@@ -1016,6 +1024,7 @@ typing-extensions = [
     {file = "typing_extensions-4.3.0-py3-none-any.whl", hash = "sha256:25642c956049920a5aa49edcdd6ab1e06d7e5d467fc00e0506c44ac86fbfca02"},
     {file = "typing_extensions-4.3.0.tar.gz", hash = "sha256:e6d2677a32f47fc7eb2795db1dd15c1f34eff616bcaf2cfb5e997f854fa1c4a6"},
 ]
+ujson = []
 virtualenv = [
     {file = "virtualenv-20.16.2-py2.py3-none-any.whl", hash = "sha256:635b272a8e2f77cb051946f46c60a54ace3cb5e25568228bd6b57fc70eca9ff3"},
     {file = "virtualenv-20.16.2.tar.gz", hash = "sha256:0ef5be6d07181946891f5abc8047fda8bc2f0b4b9bf222c64e6e8963baee76db"},
