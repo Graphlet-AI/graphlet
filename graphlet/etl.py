@@ -55,3 +55,41 @@ class EdgeBase(EntityBase):
 
     src: str
     dst: str
+
+    @validator("src")
+    def validate_src(cls, v: str) -> str:
+        """validate_uuid Validate the source UUID.
+
+        Parameters
+        ----------
+        v : entity_id value
+            The value being stored in the src field
+
+        Returns
+        -------
+        str
+            The validated field value we return
+        """
+        if not bool(uuid_pattern.search(v)):
+            raise ValueError("Not a valid UUID")
+
+        return v
+
+    @validator("dst")
+    def validate_dst(cls, v: str) -> str:
+        """validate_uuid Validate the destination UUID.
+
+        Parameters
+        ----------
+        v : entity_id value
+            The value being stored in the dst field
+
+        Returns
+        -------
+        str
+            The validated field value we return
+        """
+        if not bool(uuid_pattern.search(v)):
+            raise ValueError("Not a valid UUID")
+
+        return v
