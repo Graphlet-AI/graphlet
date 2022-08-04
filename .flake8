@@ -18,6 +18,8 @@ ignore =
     D202
     # I complain about unused arguments for class methods because I am stupid
     U100
+    # Allow function names to end with their first variable name
+    FNE008
 max-complexity = 10
 # Enforce numpy docstring format
 docstring-convention = numpy
