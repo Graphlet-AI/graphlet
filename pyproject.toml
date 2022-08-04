@@ -56,6 +56,9 @@ pydantic-spark = "^0.1.1"
 typeguard = "^2.13.3"
 xmltodict = "^0.13.0"
 ujson = "^5.4.0"
+types-ujson = "^5.4.0"
+types-xmltodict = "^0.13.0"
+tqdm = "^4.64.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
