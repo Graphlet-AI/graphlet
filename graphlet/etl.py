@@ -62,7 +62,7 @@ class EdgeBase(EntityBase):
 
         Parameters
         ----------
-        v : entity_id value
+        v : src entity id value
             The value being stored in the src field
 
         Returns
@@ -81,7 +81,7 @@ class EdgeBase(EntityBase):
 
         Parameters
         ----------
-        v : entity_id value
+        v : dst entity id value
             The value being stored in the dst field
 
         Returns
