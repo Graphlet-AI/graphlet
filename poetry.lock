@@ -944,6 +944,14 @@ slack = ["slack-sdk"]
 telegram = ["requests"]
 
 [[package]]
+name = "tqdm-stubs"
+version = "0.2.1"
+description = "Stub type files for tqdm"
+category = "main"
+optional = false
+python-versions = ">=3.7,<4.0"
+
+[[package]]
 name = "traitlets"
 version = "5.3.0"
 description = ""
@@ -976,14 +984,6 @@ python-versions = "*"
 
 [package.dependencies]
 types-urllib3 = "<1.27"
-
-[[package]]
-name = "types-tqdm"
-version = "4.64.4"
-description = "Typing stubs for tqdm"
-category = "main"
-optional = false
-python-versions = "*"
 
 [[package]]
 name = "types-ujson"
@@ -1074,7 +1074,7 @@ python-versions = ">=3.4"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "1e5dbcf99ad836d95e548a3da4d9d892d4865ca621ec83d311d9419a75e1a51e"
+content-hash = "7f7757847b4bbbe576fd7083eacb96276685ac06ebf4cb4bff6f04c3f9ef9a3d"
 
 [metadata.files]
 appnope = [
@@ -1542,6 +1542,7 @@ tqdm = [
     {file = "tqdm-4.64.0-py2.py3-none-any.whl", hash = "sha256:74a2cdefe14d11442cedf3ba4e21a3b84ff9a2dbdc6cfae2c34addb2a14a5ea6"},
     {file = "tqdm-4.64.0.tar.gz", hash = "sha256:40be55d30e200777a307a7585aee69e4eabb46b4ec6a4b4a5f2d9f11e7d5408d"},
 ]
+tqdm-stubs = []
 traitlets = [
     {file = "traitlets-5.3.0-py3-none-any.whl", hash = "sha256:65fa18961659635933100db8ca120ef6220555286949774b9cfc106f941d1c7a"},
     {file = "traitlets-5.3.0.tar.gz", hash = "sha256:0bb9f1f9f017aa8ec187d8b1b2a7a6626a2a1d877116baba52a129bfa124f8e2"},
@@ -1551,7 +1552,6 @@ types-requests = [
     {file = "types-requests-2.28.7.tar.gz", hash = "sha256:36385618d4bd2ee3211d4d2e78b44f067ceb5984865c0f253f3c9ecb964526cf"},
     {file = "types_requests-2.28.7-py3-none-any.whl", hash = "sha256:38015d310d13cf7d4d712d2507178349e13fd5dab85259dab7d9a9884c2c9c2a"},
 ]
-types-tqdm = []
 types-ujson = []
 types-urllib3 = []
 types-xmltodict = []
