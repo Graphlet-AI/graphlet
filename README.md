@@ -1,4 +1,6 @@
-# Graphlet AI Knowledge Graph Factory
+<p align="center">
+    <h1 align="center">Graphlet AI Knowledge Graph Factory</h1>
+</p>
 
 <p align="center">
     <img src="https://github.com/Graphlet-AI/graphlet/raw/main/images/graphlet_logo.png" alt="Our mascot Orbits the Squirrel has 5 orbits. Everyone knows this about squirrels!" width="300"/>
