@@ -1,7 +1,7 @@
 """Contains base classes for entities within a property graph ontology to make ETL easier."""
 
 import re
-from enum import Enum
+import typing
 from uuid import uuid4
 
 from pydantic import Field, validator
@@ -17,16 +17,17 @@ class EntityBase(SparkBase):
     """
 
     class Config:
-        """Configure the class to use Enum values."""
+        """Configure the class to use Enum values. Easier to access this way, avoids x.value."""
 
+        validate_assignment = True
         use_enum_values = True
 
     entity_id: str = Field(default_factory=lambda: str(uuid4()))
-    entity_type: Enum
+    entity_type: typing.Optional[str]
 
     @validator("entity_id")
     def validate_uuid(cls, v: str) -> str:
-        """validate_uuid Validate the UUID.
+        """validate_uuid Validate the UUID entity_id.
 
         Parameters
         ----------
@@ -42,6 +43,12 @@ class EntityBase(SparkBase):
             raise ValueError("Not a valid UUID")
 
         return v
+
+    @validator("entity_type", pre=True, always=True)
+    def set_default_entity_type(cls, v: str, **kwargs) -> str:
+        """Set the default entity type to the class name."""
+
+        return v or cls.__name__.lower()
 
 
 class NodeBase(EntityBase):
