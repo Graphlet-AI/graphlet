@@ -20,6 +20,8 @@ ignore =
     U100
     # Allow function names to end with their first variable name
     FNE008
+    # Unneccessary variable assignment before return statement
+    R504
 max-complexity = 10
 # Enforce numpy docstring format
 docstring-convention = numpy
