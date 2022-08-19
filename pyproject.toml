@@ -63,6 +63,7 @@ requests = "^2.28.1"
 types-requests = "^2.28.7"
 tqdm-stubs = "^0.2.1"
 pandas = "^1.4.3"
+pyarrow = "^9.0.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
