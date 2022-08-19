@@ -58,6 +58,18 @@ This project is in a state of development, things are still forming and changing
 
 We manage dependencies with [poetry](https://python-poetry.org/) which are managed (along with most settings) in [pyproject.toml](pyproject.toml).
 
+To install poetry, run:
+
+```bash
+curl -sSL https://install.python-poetry.org | python3 -
+```
+
+Then upgrade to poetry 1.2b3 (required for PyDantic non-binary install):
+
+```bash
+poetry self update --preview
+```
+
 To build the project, run:
 
 ```bash
