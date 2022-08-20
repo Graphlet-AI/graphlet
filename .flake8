@@ -22,6 +22,8 @@ ignore =
     FNE008
     # Unneccessary variable assignment before return statement
     R504
+    # First line should be in imperative mood
+    D401
 max-complexity = 10
 # Enforce numpy docstring format
 docstring-convention = numpy
