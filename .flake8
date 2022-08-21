@@ -24,6 +24,8 @@ ignore =
     R504
     # First line should be in imperative mood
     D401
+    # First word on first line should be capitalized - no we have the method name...
+    D403
 max-complexity = 10
 # Enforce numpy docstring format
 docstring-convention = numpy
