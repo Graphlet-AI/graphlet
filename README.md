@@ -132,6 +132,7 @@ The following [VSCode](https://code.visualstudio.com/) settings are defined for 
     "python.linting.pylintEnabled": false,
     "python.linting.flake8Enabled": true,
     "autoDocstring.docstringFormat": "numpy",
+    "mypy.dmypyExecutable": "~/opt/anaconda3/envs/graphlet/bin/dmypy"
 }
 ```
 
@@ -201,3 +202,7 @@ python -m graphlet.dblp
 We believe RDF/SPARQL are based on the false assumptions of the Semantic Web, which did not work out.
 
 ![Cory Doctorow describes the problems with RDF/SPARQL and the Semantic Web in his essay Metacrap. Concepts across organizations are more complex than a simple ontology can represent. You shouldn't trust their data. Their data is dirty and you don't have the context to clean it. ETL is cost prohibitive with SPARQL - especially repeatedly at query time. These tools are optimized for "schema default" and this doesn't work well.](images/Semantic-Web-Metacrap.png)
+
+The reality is more like this, which our system is optimized for. At present we are not focusing on NLP, information extraction and entity linking in favor of tools optimized for building property graphs by using ETL to transform many datasets into a uniform ontology for solving problems using ML and information retrieval.
+
+![Bring Your own Knowledge Graph](images/Building%20an%20Ontology.png)
