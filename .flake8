@@ -14,6 +14,18 @@ ignore =
     SC200
     # Missing docstring in public package
     D104
+    # No blank space after docstring
+    D202
+    # I complain about unused arguments for class methods because I am stupid
+    U100
+    # Allow function names to end with their first variable name
+    FNE008
+    # Unneccessary variable assignment before return statement
+    R504
+    # First line should be in imperative mood
+    D401
+    # First word on first line should be capitalized - no we have the method name...
+    D403
 max-complexity = 10
 # Enforce numpy docstring format
 docstring-convention = numpy
