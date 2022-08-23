@@ -10,11 +10,13 @@ This is the PyPi module for the Graphlet AI Knowledge Graph Factory for building
 
 ## Motivaton
 
-A [100-slide presentation on Graphlet AI](https://bit.ly/graphlet_ai_slides) explains where we are coming from! Thanks to [DataCon LA](https://www.dataconla.com/#event-773) for hosting!
+A [100-slide presentation on Graphlet AI](https://bit.ly/graphlet_ai_slides) explains where we are headed! The motivation for the project is described in [Knowledge Graph Factory: Extract, Transform, Resolve, Model, Predict, Explain](https://docs.google.com/document/d/1aGdZXzCPvHuzYeLk-VnrFGMZvPCq7o6XK9TrJCulQV4/edit?usp=sharing).
 
 ![![DataCon LA 2022 Graphlet AI Presentation](https://bit.ly/graphlet_ai_slides)](images/Graphlet.AI%20Slides.png)
 
 > The knowledge graph and graph database markets have long asked themselves: why aren't we larger? The vision of the semantic web was that many datasets could be cross-referenced between independent graph databases to map all knowledge on the web from myriad disparate datasets into one or more authoritative ontologies which could be accessed by writing SPARQL queries to work across knowledge graphs. The reality of dirty data made this vision impossible. Most time is spent cleaning data which isn't in the format you need to solve your business problems. Multiple datasets in different formats each have quirks. Deduplicate data using entity resolution is an unsolved problem for large graphs. Once you merge duplicate nodes and edges, you rarely have the edge types you need to make a problem easy to solve. It turns out the most likely type of edge in a knowledge graph that solves your problem easily is defined by the output of a Python program using the machine learning. For large graphs, this program needs to run on a horizontally scalable platform PySpark and extend rather than be isolated inside a graph databases. The quality of developer's experience is critical. In this talk I will review an approach to an Open Source Large Knowledge Graph Factory built on top of Spark that follows the ingest / build / refine / public / query model that open source big data is based upon.
+
+&nbsp;&nbsp;&nbsp;&nbsp;--Russell Jurney in [Knowledge Graph Factory: Extract, Transform, Resolve, Model, Predict, Explain](https://docs.google.com/document/d/1aGdZXzCPvHuzYeLk-VnrFGMZvPCq7o6XK9TrJCulQV4/edit?usp=sharing)
 
 ## Core Features
 
@@ -34,9 +36,39 @@ The system architecture for Graphlet AI is based on a standard "Delta Architectu
 
 ![Graphlet AI System Architecture](https://github.com/Graphlet-AI/graphlet/raw/main/images/System-Architecture---From-OmniGraffle.png)
 
-This architecture is intended to optimize the construction of large knowledge graphs from multiple data sources and information extraction/entity linking.
+This architecture is intended to optimize the construction of large knowledge graphs from multiple data sources and eventually using NLP - information extraction and entity linking.
 
-![The reality of knowledge graphs is not the semantic web, but islands of hard-won knowledge graphs created via ETL of many datasets and information extraction/entity linking](images/Building%20an%20Ontology.png)
+## How do you build a knowledge graph? What is a knowledge graph factory?
+
+The process of building a knowledge graph - a property graph - out of multiple large (and many small) datasets is described below. This is the process we are optimizing.
+
+1. Assess the input datasets, come up with the [Pandera ontology classes](https://pandera.readthedocs.io/en/stable/schema_models.html#schema-models). What your graph will look like. I am using films as an example for the test dataset... horror.csv, comedy.csv, directors.csv... and it becomes Movies, Actors, Directors, Awards. So you create those classes and Directed, ActedIn, Won, etc. edges... as Pandera classes.
+<br /><br />
+![How knowledge graphs are built](images/Building%20an%20Ontology.png)
+
+2. Use the [Pandera classes](https://pandera.readthedocs.io/en/stable/schema_models.html#schema-models) that define your ontology to build custom transformation and validation of data so you instantiate a simple class to transform data from one format to another rather than writing independent implementations. Implement your ETL as part of these classes using Pandera functions in the class to efficiently transform and also validate data. Pandera validates the ENTIRE record, even if one field fails to parse... so you get ALL the fields' errors at once. The system will report every erroneous error rather than dying on the first error. This would make ETL *MUCH* faster. You will know all the issues up front, and can put checks in place to prevent creeper issues that kill productivity from making it through the early stages of te lengthy, complex ETL pipelines that large knowledge graph projects often create.
+
+3. Take these classes that we have ETL'd the original datasets into, feed them into a Ditto style encoding and turn them into text documents and feed them into a Graph Attention Network (GAN) ER model.
+<br /><br />
+![Ditto encoding of semi-structured data into text documents](images/Entity-Resolution---Ditto-Encoding.png)
+
+4. The ER model produces aggregate nodes with lots of sub-nodes... what we have called identities made up of entities.
+<br /><br />
+![Aggregate entities in identities in a business graph](images/Entity-Resolution-Enables-Motif-Search.png)
+
+5. The same Pandera classes for the Ontology then contain summarization methods. Some kind of summarization interface that makes things simple. You got 25 addresses? You have an interface for reducing them. Turn things into fields with lists, or duplicate them.
+<br /><br />
+NOTE: At this point you have a knowledge graph (property graph) you can load anywhere - TigerGraph, Neo4j, Elasticsearch or OpenSearch.
+
+6. Once this is accomplished, we build a graph DB on top of OpenSearch. The security-analytics project is going to do this, so we can wait for them and contribute to that project. Using an OpenSearch plugin reduces round-trip latency substantially, which makes scaling much easier for long walks that expand into many neighboring nodes.
+
+7. Finally we create or use a middleware layer for an external API for the platform in front of MLFlow for MLOps / serving any live models and graph search and retrieval from OpenSearch.
+
+8. Now that we have a clean property graph, we can pursue our network motif searching and motif-based representation learning. Muhahahahahaha!
+<br /><br />
+![GraphFrames Network Motif Search](images/)
+
+Optimizing the above process is the purpose of Graphlet AI. We believe that if we make all of that easier, we can help more organizations successfully build large, enterprise knowledge graphs (property graphs) in less time and for less money.
 
 ## License
 
@@ -68,6 +100,7 @@ flake8-comments = "^0.1.2"
 ## Developer Setup
 
 This project is in a state of development, things are still forming and changing. If you are here, it must be to contribute :)
+
 ### Dependencies
 
 We manage dependencies with [poetry](https://python-poetry.org/) which are managed (along with most settings) in [pyproject.toml](pyproject.toml).
@@ -134,7 +167,7 @@ The following [VSCode](https://code.visualstudio.com/) settings are defined for 
     "autoDocstring.docstringFormat": "numpy",
     "mypy.dmypyExecutable": "~/opt/anaconda3/envs/graphlet/bin/dmypy"
 }
-```
+``` 
 
 ## Entity Resolution (ER)
 
