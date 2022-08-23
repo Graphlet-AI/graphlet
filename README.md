@@ -20,7 +20,7 @@ A [100-slide presentation on Graphlet AI](https://bit.ly/graphlet_ai_slides) exp
 
 This project is new, some features we are building are:
 
-1) [Create a Pandera/PySpark base class for transforming multiple entities into a uniform ontology](https://github.com/Graphlet-AI/graphlet/issues/1)
+1) [Create Pandera / PySpark utilities graphlet.etl for transforming multiple datasets into a uniform ontology](https://github.com/Graphlet-AI/graphlet/issues/1)
 
 2) [Create a generic, configurable system for entity resolution of heterogeneous networks](https://github.com/Graphlet-AI/graphlet/issues/3)
 
