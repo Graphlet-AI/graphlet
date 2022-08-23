@@ -30,6 +30,78 @@ This project is new, some features we are building are:
 
 4) [Implement efficient motif searching via neural subgraph matching](https://github.com/Graphlet-AI/graphlet/issues/4)
 
+## Developer Setup
+
+This project is in a state of development, things are still forming and changing. If you are here, it must be to contribute :)
+
+### Dependencies
+
+We manage dependencies with [poetry](https://python-poetry.org/) which are managed (along with most settings) in [pyproject.toml](pyproject.toml).
+
+To install poetry, run:
+
+```bash
+curl -sSL https://install.python-poetry.org | python3 -
+```
+
+Then upgrade to poetry 1.2b3 (required for PyDantic non-binary install):
+
+```bash
+poetry self update --preview
+```
+
+To build the project, run:
+
+```bash
+poetry install
+```
+
+To add a PyPi package, run:
+
+```bash
+poetry add <package>
+```
+
+To add a development package, run:
+
+```bash
+poetry add --dev <package>
+```
+
+If you do edit [pyproject.toml](pyproject.toml) you must update to regenerate [poetry.lock](poetry.lock):
+
+```bash
+poetry update
+```
+
+### Pre-Commit Hooks
+
+We use [pre-commit](https://pre-commit.com/) to run [black](https://github.com/psf/black), [flake8](https://flake8.pycqa.org/en/latest/), [isort](https://pycqa.github.io/isort/) and [mypy](http://mypy-lang.org/). This is configured in [.pre-commit-config.yaml](.pre-commit-config.yaml).
+
+### VSCode Settings
+
+The following [VSCode](https://code.visualstudio.com/) settings are defined for the project in [.vscode/settings.json](.vscode/settings.json) to ensure code is formatted consistent with our pre-commit hooks:
+
+```json
+{
+    "editor.rulers": [90, 120],
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.python",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {"source.organizeImports": true},
+    },
+    "python.jediEnabled": false,
+    "python.languageServer": "Pylance",
+    "python.linting.enabled": true,
+    "python.formatting.provider": "black",
+    "python.sortImports.args": ["--profile", "black"],
+    "python.linting.pylintEnabled": false,
+    "python.linting.flake8Enabled": true,
+    "autoDocstring.docstringFormat": "numpy",
+    "mypy.dmypyExecutable": "~/opt/anaconda3/envs/graphlet/bin/dmypy"
+}
+``` 
+
 ## System Architecture
 
 The system architecture for Graphlet AI is based on a standard "Delta Architecture" that ingests, transforms, refines and publishes data for a graph database on top of a search engine to serve along with an MLOps platform for ML APIs.
@@ -109,78 +181,6 @@ flake8-builtins = "^1.5.3"
 flake8-functions-names = "^0.3.0"
 flake8-comments = "^0.1.2"
 ```
-
-## Developer Setup
-
-This project is in a state of development, things are still forming and changing. If you are here, it must be to contribute :)
-
-### Dependencies
-
-We manage dependencies with [poetry](https://python-poetry.org/) which are managed (along with most settings) in [pyproject.toml](pyproject.toml).
-
-To install poetry, run:
-
-```bash
-curl -sSL https://install.python-poetry.org | python3 -
-```
-
-Then upgrade to poetry 1.2b3 (required for PyDantic non-binary install):
-
-```bash
-poetry self update --preview
-```
-
-To build the project, run:
-
-```bash
-poetry install
-```
-
-To add a PyPi package, run:
-
-```bash
-poetry add <package>
-```
-
-To add a development package, run:
-
-```bash
-poetry add --dev <package>
-```
-
-If you do edit [pyproject.toml](pyproject.toml) you must update to regenerate [poetry.lock](poetry.lock):
-
-```bash
-poetry update
-```
-
-### Pre-Commit Hooks
-
-We use [pre-commit](https://pre-commit.com/) to run [black](https://github.com/psf/black), [flake8](https://flake8.pycqa.org/en/latest/), [isort](https://pycqa.github.io/isort/) and [mypy](http://mypy-lang.org/). This is configured in [.pre-commit-config.yaml](.pre-commit-config.yaml).
-
-### VSCode Settings
-
-The following [VSCode](https://code.visualstudio.com/) settings are defined for the project in [.vscode/settings.json](.vscode/settings.json) to ensure code is formatted consistent with our pre-commit hooks:
-
-```json
-{
-    "editor.rulers": [90, 120],
-    "[python]": {
-        "editor.defaultFormatter": "ms-python.python",
-        "editor.formatOnSave": true,
-        "editor.codeActionsOnSave": {"source.organizeImports": true},
-    },
-    "python.jediEnabled": false,
-    "python.languageServer": "Pylance",
-    "python.linting.enabled": true,
-    "python.formatting.provider": "black",
-    "python.sortImports.args": ["--profile", "black"],
-    "python.linting.pylintEnabled": false,
-    "python.linting.flake8Enabled": true,
-    "autoDocstring.docstringFormat": "numpy",
-    "mypy.dmypyExecutable": "~/opt/anaconda3/envs/graphlet/bin/dmypy"
-}
-``` 
 
 ## Entity Resolution (ER)
 
