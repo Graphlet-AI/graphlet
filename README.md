@@ -64,9 +64,22 @@ NOTE: At this point you have a knowledge graph (property graph) you can load any
 
 7. Finally we create or use a middleware layer for an external API for the platform in front of MLFlow for MLOps / serving any live models and graph search and retrieval from OpenSearch.
 
-8. Now that we have a clean property graph, we can pursue our network motif searching and motif-based representation learning. Muhahahahahaha!
+8. Now that we have a clean property graph, we can pursue our network motif searching and motif-based representation learning.
 <br /><br />
-![GraphFrames Network Motif Search](images/)
+Tonight we will take over the world! Muhahahahahaha!
+<br /><br />
+![Pinky and the Brain](images/Pinky_and_Brain.jpeg)
+<br /><br />
+[GraphFrames](https://graphframes.github.io/graphframes/docs/_site/index.html) uses [PySpark DataFrames](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame) to perform [network motif search](https://graphframes.github.io/graphframes/docs/_site/user-guide.html#motif-finding) for known motifs until we [Implement efficient random motif searching via neural subgraph matching](https://github.com/Graphlet-AI/graphlet/issues/4).
+<br /><br />
+Below is an example of a network motif for financial compliance risk (KYC / AML) called Multiple-Path Beneficial Ownership for finding the ultimate beneficial owners a company that uses a layer of companies it owns between it and the asset it wishes to obscure. This motif indicates secrecy, not wrongdoing, but this is a risk factor.
+<br /><br />
+![Multiple-Path Beneficial Ownership Risk Motif](images/Multiple-Path-Indirect-Ownership-Motif.png)
+<br /><br />
+Below is the [PySpark](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame) / [GraphFrames motif search](https://graphframes.github.io/graphframes/docs/_site/user-guide.html#motif-finding) code that detects this motif. While brute force searching for network motifs using MapReduce joins is not efficient, it does work well for finding known network motifs for most large networks. It is also flexible enough to search for variations, broadening results and providing domain experts with examples of variants from which to learn new motifs or expand existing motifs.
+<br /><br />
+![GraphFrames Network Motif Search](images/PySpark---GraphFrames-Motif-Search.png)
+* Motif Source: [Creating clarity around ownership structures, Bureau Van Dijk](https://www.bvdinfo.com/en-us/knowledge-base/white-papers/integrated-corporate-ownership-and-related-risk-poster)
 
 Optimizing the above process is the purpose of Graphlet AI. We believe that if we make all of that easier, we can help more organizations successfully build large, enterprise knowledge graphs (property graphs) in less time and for less money.
 
