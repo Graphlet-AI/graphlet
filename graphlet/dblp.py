@@ -15,6 +15,8 @@ from graphlet.paths import get_data_dir
 DBLP_XML_URL = "https://dblp.org/xml/dblp.xml.gz"
 DBLP_LABELS_URL = " https://hpi.de/fileadmin/user_upload/fachgebiete/naumann/projekte/repeatability/DBLP/dblp50000.xml"
 
+pd.set_option("display.max_columns", None)
+
 
 def download(url=DBLP_XML_URL, folder: str = get_data_dir(), gzip_=True) -> None:
     """download Download a file like the DBLP data and store in the data directory.
