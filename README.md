@@ -30,6 +30,12 @@ This project is new, some features we are building are:
 
 4) [Implement efficient motif searching via neural subgraph matching](https://github.com/Graphlet-AI/graphlet/issues/4)
 
+## Scale Goals
+
+Graphlet AI is a knowledge graph factory designed to scale to 10B node property graphs with 30B edges.
+
+If your network is 10K nodes, let me introduce you to [networkx](https://networkx.org/) :)
+
 ## Developer Setup
 
 This project is in a state of development, things are still forming and changing. If you are here, it must be to contribute :)
