@@ -197,7 +197,7 @@ The motivation for Graphlet AI is to provide tools that facilitate the construct
 
 ### Entity Resolution Process
 
-1. Transform Datasets into a Common Schemas in a Property Graph Ontology
+1. Transform Datasets into a set of Common Schemas in a Property Graph Ontology
 <br /><br />
 The first step in our ER process is to ETL multiple datasets into a common form - in silver tables - in our property graph ontology. Then a single model can be used for each type - rather than having to work across multiple schemas. This simplifies the implementation of entity resolution.
 <br /><br />
