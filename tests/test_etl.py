@@ -2,7 +2,11 @@
 
 import typing
 
+# from typing import TypeVar
+from uuid import uuid4
+
 import pandas as pd  # type: ignore
+import pandera as pa
 import pyspark.sql.functions as F
 import pyspark.sql.types as T
 import pytest
@@ -10,7 +14,7 @@ from pyspark import SparkContext
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import PandasUDFType
 
-# from graphlet.etl import EntityBase, NodeBase  # EdgeBase, EntityBase, NodeBase
+from graphlet.etl import EntitySchema
 
 
 @pytest.fixture
@@ -194,30 +198,29 @@ def test_pandas_spark_etl(spark_session_context: typing.Tuple[SparkSession, Spar
     horror_movies.show()
 
 
-# def test_base_classes() -> None:
-#     """Test the graplet.etl base classes for nodes and edges."""
+@pytest.fixture
+def get_good_entity_df() -> pd.DataFrame:
+    """Get a DataFrame fit for an EntitySchema's validation."""
+    return pd.DataFrame(
+        [
+            {
+                "entity_id": str(uuid4()),
+                "entity_type": "node",
+            }
+            for x in range(0, 5)
+        ]
+    )
 
-# def test_entity_id() -> None:
-#     """test_entity_base_id Verify that the EntityBase auto generated entity_id is a valid UUID4."""
 
-#     # Verify that the UUID4 works
-#     entity = TestEntity()
-#     assert re.search(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", entity.entity_id)
+def test_entity_schema(get_good_entity_df) -> None:
+    """Test the entity schema."""
 
+    @pa.check_types
+    def transform(df: pa.typing.DataFrame[EntitySchema]) -> pa.typing.DataFrame[EntitySchema]:
+        return df
 
-# def test_entity_base_enum() -> None:
-#     """test_entity_base Verify that the EntityBase types are working."""
+    transform(get_good_entity_df)
 
-#     # Verify that the type is as expected
-#     entity1 = TestEntity()
-#     assert entity1.entity_id is not None
-#     assert entity1.entity_type == "test_entity"
-
-#     # Verify that the type is as expected
-#     try:
-#         TestEntity(entity_type=None)
-#     except ValueError:
-#         pytest.fail("Set null entity type")
 
 # class Movie(NodeBase):
 #     """Movie genres."""
