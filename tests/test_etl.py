@@ -1,18 +1,16 @@
 """Implements unit tests of Graphlet's spark module."""
 
-import re
 import typing
 
-# import pandas as pd
+import pandas as pd  # type: ignore
 import pyspark.sql.functions as F
 import pyspark.sql.types as T
 import pytest
-
-# from pydantic import validator
 from pyspark import SparkContext
 from pyspark.sql import SparkSession
+from pyspark.sql.functions import PandasUDFType
 
-from graphlet.etl import EdgeBase, EntityBase, NodeBase
+from graphlet.etl import EntityBase, NodeBase  # EdgeBase, EntityBase, NodeBase
 
 
 @pytest.fixture
@@ -46,111 +44,80 @@ def test_spark_session_fixture(spark_session_context: typing.Tuple[SparkSession,
     assert df.collect() == [("a", "b"), ("c", "d")]
 
 
-class TestEntity(EntityBase):
-    """TestEntity - Test entity class for EntityBase with entity_type="test_entity"."""
+# def test_entity_id() -> None:
+#     """test_entity_base_id Verify that the EntityBase auto generated entity_id is a valid UUID4."""
 
-    entity_type: str = "test_entity"
-
-
-def test_entity_base_fields() -> None:
-    """test_entity_base_fields Verify that EntityBase has its fields."""
-
-    entity = TestEntity()
-    assert entity.__fields__.keys() == {"entity_id", "entity_type"}
-    assert entity.dict() == dict(entity) == {"entity_id": entity.entity_id, "entity_type": "test_entity"}
+#     # Verify that the UUID4 works
+#     entity = TestEntity()
+#     assert re.search(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", entity.entity_id)
 
 
-def test_entity_id() -> None:
-    """test_entity_base_id Verify that the EntityBase auto generated entity_id is a valid UUID4."""
+# def test_entity_base_enum() -> None:
+#     """test_entity_base Verify that the EntityBase types are working."""
 
-    # Verify that the UUID4 works
-    entity = TestEntity()
-    assert re.search(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", entity.entity_id)
+#     # Verify that the type is as expected
+#     entity1 = TestEntity()
+#     assert entity1.entity_id is not None
+#     assert entity1.entity_type == "test_entity"
 
-
-def test_entity_base_enum() -> None:
-    """test_entity_base Verify that the EntityBase types are working."""
-
-    # Verify that the type is as expected
-    entity1 = TestEntity()
-    assert entity1.entity_id is not None
-    assert entity1.entity_type == "test_entity"
-
-    # Verify that the type is as expected
-    try:
-        TestEntity(entity_type=None)
-    except ValueError:
-        pytest.fail("Set null entity type")
+#     # Verify that the type is as expected
+#     try:
+#         TestEntity(entity_type=None)
+#     except ValueError:
+#         pytest.fail("Set null entity type")
 
 
-def test_entity_pyspark() -> None:
-    """test_entity_pyspark Verify we can use the class in PySpark."""
+# class Movie(NodeBase):
+#     """Movie genres."""
 
-    entity = TestEntity()
-    assert T.StructType.fromJson(entity.spark_schema())
-
-
-class Movie(NodeBase):
-    """Movie genres."""
-
-    entity_type = "movie"
-    title: str
-    genre: typing.Optional[str]
+#     entity_type = "movie"
+#     title: str
+#     genre: typing.Optional[str]
 
 
-def test_node() -> None:
-    """test_node Test the EdgeBase class."""
+# def test_node() -> None:
+#     """test_node Test the EdgeBase class."""
 
-    comedy_node = Movie(title="Coming to America", genre="comedy")
-    assert comedy_node.genre == "comedy"
-
-
-class Director(NodeBase):
-    """A person in hollywood."""
-
-    entity_type = "director"
-    name: str
-    nationality: typing.Optional[str]
+#     comedy_node = Movie(title="Coming to America", genre="comedy")
+#     assert comedy_node.genre == "comedy"
 
 
-class Directed(EdgeBase):
-    """A director directed a movie."""
+# class Director(NodeBase):
+#     """A person in hollywood."""
 
-    entity_type = "directed"
-
-
-def test_nodes_edge() -> None:
-    """test_edge Test the Relationship class."""
-
-    comedy_node = Movie(title="Trauma", genre="horror")
-    director_node = Director(name="Dario Argento")
-    director_edge = Directed(src=director_node.entity_id, dst=comedy_node.entity_id, entity_type="director")
-
-    # Test ze nodes
-    assert comedy_node.genre == "horror"
-    assert director_node.name == "Dario Argento"
-
-    # Test ze edge
-    assert director_edge.src == director_node.entity_id
-    assert director_edge.dst == comedy_node.entity_id
+#     entity_type = "director"
+#     name: str
+#     nationality: typing.Optional[str]
 
 
-class NoType(EntityBase):
-    """An entity without a specified type."""
+# class Directed(EdgeBase):
+#     """A director directed a movie."""
 
-    pass
-
-
-def test_default_entity_type() -> None:
-    """Verify that without a entity_type argument, the entity type defaults to the class name."""
-
-    default_type_entity = NoType()
-    print(f"type(default_type_entity.entity_type) == {type(default_type_entity.entity_type)}")
-    print(f"default_type_entity.entity_type == {default_type_entity.entity_type}")
-    assert default_type_entity.entity_type == "notype"
+#     entity_type = "directed"
 
 
-@F.udf(T.StringType())
+# def test_nodes_edge() -> None:
+#     """test_edge Test the Relationship class."""
+
+#     comedy_node = Movie(title="Trauma", genre="horror")
+#     director_node = Director(name="Dario Argento")
+#     director_edge = Directed(src=director_node.entity_id, dst=comedy_node.entity_id, entity_type="director")
+
+#     # Test ze nodes
+#     assert comedy_node.genre == "horror"
+#     assert director_node.name == "Dario Argento"
+
+#     # Test ze edge
+#     assert director_edge.src == director_node.entity_id
+#     assert director_edge.dst == comedy_node.entity_id
+
+
+# class NoType(EntityBase):
+#     """An entity without a specified type."""
+
+#     pass
+
+
 def standard_unrated(x):
     """standard_unrated Standardize different forms of unrated films.
 
@@ -172,6 +139,19 @@ def standard_unrated(x):
         rating = x.upper()
 
     return rating
+
+
+@F.udf(T.StringType())
+def stanard_unrated_udf(x):
+    """stanard_unrated_udf UDF that cleans up movie ratings.
+
+    Parameters
+    ----------
+    x : str
+        The rating of the movie to be cleaned
+    """
+
+    return standard_unrated(x)
 
 
 def text_runtime_to_minutes(x: str) -> int:
@@ -205,10 +185,6 @@ def test_traditional_spark_etl(spark_session_context: typing.Tuple[SparkSession,
 
     spark, sc = spark_session_context
 
-    # Movie awards
-    awards = spark.read.option("header", "true").csv("tests/data/awards.csv")
-    awards.show()
-
     # A genre of movies
     comedies = spark.read.option("header", "true").csv("tests/data/comedy.csv")
     comedies.show()
@@ -237,9 +213,63 @@ def test_traditional_spark_etl(spark_session_context: typing.Tuple[SparkSession,
         F.col("Year").alias("year"),
         text_runtime_to_minutes_old_udf("Length").alias("length"),
         F.lit(None).alias("gross"),
-        standard_unrated("Rating").alias("rating"),
+        stanard_unrated_udf("Rating").alias("rating"),
     )
     horror_movies.show()
+
+
+def test_pandas_spark_etl(spark_session_context: typing.Tuple[SparkSession, SparkContext]) -> None:
+    """Test the classes with Spark UDFs."""
+
+    spark, sc = spark_session_context
+
+    @F.pandas_udf(T.IntegerType(), PandasUDFType.SCALAR)
+    def text_runtime_to_minutes_pandas_udf(x: pd.Series) -> pd.Series:
+        """text_runtime_to_minutes_pandas_udf pandas_udf that runs text_runtime_to_minutes.
+
+        Parameters
+        ----------
+        x : pd.Series[str]
+            A series of waw text movie runtime field: ex. "1h 34m"
+
+        Returns
+        -------
+        pd.Series[int]
+            A series of minutes of runtime
+        """
+        return x.apply(text_runtime_to_minutes).astype("int")
+
+    @F.pandas_udf("string", PandasUDFType.SCALAR)
+    def stanard_unrated_pandas_udf(x: pd.Series[str]) -> pd.Series[str]:
+        """stanard_unrated_udf UDF that cleans up movie ratings.
+
+        Parameters
+        ----------
+        x : str
+            The rating of the movie to be cleaned
+        """
+
+        return x.apply(standard_unrated).astype("str")
+
+    # Another genre of movies
+    horror = spark.read.option("header", "true").csv("tests/data/horror.csv")
+    horror.show()
+
+    # Transform horror films into generic movies
+    horror_movies = horror.select(
+        F.lit("movie").alias("entity_type"),
+        F.lit("horror").alias("genre"),
+        F.col("Title").alias("title"),
+        F.col("Year").alias("year"),
+        text_runtime_to_minutes_pandas_udf("Length").alias("length"),
+        F.lit(None).alias("gross"),
+        stanard_unrated_pandas_udf("Rating").alias("rating"),
+    )
+    horror_movies.show()
+
+
+# def test_base_classes() -> None:
+#     """Test the graplet.etl base classes for nodes and edges."""
 
 
 # def test_graphlet_etl(spark_session_context) -> None:

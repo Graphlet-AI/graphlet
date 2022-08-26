@@ -2,101 +2,119 @@
 
 import re
 import typing
-from uuid import uuid4
 
-from pydantic import Field, validator
-from pydantic_spark.base import SparkBase  # type: ignore
+import pandas as pd  # type: ignore
+import pandera as pa  # type: ignore
+from pandera.typing.pyspark import Series
 
 uuid_pattern = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 
 
-class EntityBase(SparkBase):
-    """EntityBase - base class for ETL with Spark DataFrames.
+def is_valid_uuid4(x: str) -> bool:
+    """is_valid_uuid4 Validate that a string is a UUID4.
 
-    Includes SparkBase.spark_schema() to produce a DataFrame schema.
+    Parameters
+    ----------
+    x : str
+        A string we hope is a UUID4
+
+    Returns
+    -------
+    bool
+        Is a string a valid UUID?
     """
 
-    class Config:
-        """Configure the class to use Enum values. Easier to access this way, avoids x.value."""
+    return bool(uuid_pattern.search(x))
 
-        validate_assignment = True
-        use_enum_values = True
 
-    entity_id: str = Field(default_factory=lambda: str(uuid4()))
-    entity_type: typing.Optional[str]
+class EntityBase:
+    """EntityBase - base class for ETL with Spark DataFrames with Pandera validation."""
 
-    @validator("entity_id")
-    def validate_uuid(cls, v: str) -> str:
-        """validate_uuid Validate the UUID entity_id.
+    entity_id: Series[str] = pa.Field(nullable=False)
+    entity_type: Series[str] = pa.Field(nullable=True)
+
+    def __init__(self, df: pd.DataFrame, config: typing.Dict[str, typing.Any]) -> None:
+        """Create ourselves with a pandas DataFrame and configuration."""
+        self.df = df
+        self.config = config
+
+    @pa.check("entity_id", name="validate_uuid")
+    def validate_uuid(cls, x: Series[str]) -> Series[bool]:
+        """validate_uuid validate the UUID entity_id.
 
         Parameters
         ----------
-        v : entity_id value
-            The value being stored in the entity_id field
+        x : Series[str]
+            the Series of strings representing UUIDs
 
         Returns
         -------
-        str
-            The validated field value we return
+        Series[bool]
+            the Series of pass/fail on the check
         """
-        if not bool(uuid_pattern.search(v)):
-            raise ValueError("Not a valid UUID")
+        is_uuid_df: Series[bool] = x.apply(is_valid_uuid4)
 
-        return v
+        return is_uuid_df
 
-    @validator("entity_type", pre=True, always=True)
-    def set_default_entity_type(cls, v: str, **kwargs) -> str:
-        """Set the default entity type to the class name."""
+    def validate() -> pd.DataFrame:
+        """validate the transformed data to verify it fits the class's schema.
 
-        return v or cls.__name__.lower()
+        Returns
+        -------
+        pd.DataFrame
+            _description_
+        """
+
+    def transform() -> pd.DataFrame:
+        """Transform the input DataFrame to this DataFrame's schema."""
 
 
-class NodeBase(EntityBase):
+class NodeBase:
     """NodeBase - base class for nodes."""
 
     pass
 
 
-class EdgeBase(EntityBase):
-    """EdgeBase - base class for edges."""
+# class EdgeBase(pa.SchemaModel):
+#     """EdgeBase - base class for edges."""
 
-    src: str
-    dst: str
+#     src: str
+#     dst: str
 
-    @validator("src")
-    def validate_src(cls, v: str) -> str:
-        """validate_uuid Validate the source UUID.
+#     @validator("src")
+#     def validate_src(cls, v: str) -> str:
+#         """validate_uuid Validate the source UUID.
 
-        Parameters
-        ----------
-        v : src entity id value
-            The value being stored in the src field
+#         Parameters
+#         ----------
+#         v : src entity id value
+#             The value being stored in the src field
 
-        Returns
-        -------
-        str
-            The validated field value we return
-        """
-        if not bool(uuid_pattern.search(v)):
-            raise ValueError("Not a valid UUID")
+#         Returns
+#         -------
+#         str
+#             The validated field value we return
+#         """
+#         if not bool(uuid_pattern.search(v)):
+#             raise ValueError("Not a valid UUID")
 
-        return v
+#         return v
 
-    @validator("dst")
-    def validate_dst(cls, v: str) -> str:
-        """validate_uuid Validate the destination UUID.
+#     @validator("dst")
+#     def validate_dst(cls, v: str) -> str:
+#         """validate_uuid Validate the destination UUID.
 
-        Parameters
-        ----------
-        v : dst entity id value
-            The value being stored in the dst field
+#         Parameters
+#         ----------
+#         v : dst entity id value
+#             The value being stored in the dst field
 
-        Returns
-        -------
-        str
-            The validated field value we return
-        """
-        if not bool(uuid_pattern.search(v)):
-            raise ValueError("Not a valid UUID")
+#         Returns
+#         -------
+#         str
+#             The validated field value we return
+#         """
+#         if not bool(uuid_pattern.search(v)):
+#             raise ValueError("Not a valid UUID")
 
-        return v
+#         return v
