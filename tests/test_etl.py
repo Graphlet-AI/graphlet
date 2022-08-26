@@ -10,7 +10,7 @@ from pyspark import SparkContext
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import PandasUDFType
 
-from graphlet.etl import EntityBase, NodeBase  # EdgeBase, EntityBase, NodeBase
+# from graphlet.etl import EntityBase, NodeBase  # EdgeBase, EntityBase, NodeBase
 
 
 @pytest.fixture

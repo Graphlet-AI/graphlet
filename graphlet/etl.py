@@ -4,8 +4,8 @@ import re
 import typing
 
 import pandas as pd  # type: ignore
-import pandera as pa  # type: ignore
-from pandera.typing.pyspark import Series
+import pandera as pa
+from pandera.typing.pandas import Series
 
 uuid_pattern = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 
@@ -56,17 +56,24 @@ class EntityBase:
 
         return is_uuid_df
 
-    def validate() -> pd.DataFrame:
+    def validate(self) -> pd.DataFrame:
         """validate the transformed data to verify it fits the class's schema.
 
         Returns
         -------
         pd.DataFrame
-            _description_
+            Validated DataFrame or DataFrame of errors
         """
+        return self.df
 
-    def transform() -> pd.DataFrame:
-        """Transform the input DataFrame to this DataFrame's schema."""
+    def transform(self) -> pd.DataFrame:
+        """transform the input DataFrame to this DataFrame's schema.
+
+        Returns
+        -------
+        pd.DataFrame
+            Transformed DataFrame
+        """
 
 
 class NodeBase:
