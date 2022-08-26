@@ -238,8 +238,12 @@ TBD :)
 
 The datasets we use are the actual DBLP data and a set of labels for entity resolution of authors.
 
-* [DBLP Dataset](https://dblp.org/faq/How+can+I+download+the+whole+dblp+dataset.html) is available at [https://dblp.org/xml/dblp.xml.gz](https://dblp.org/xml/dblp.xml.gz).
-* [DBLP Dataset 2](https://hpi.de/naumann/projects/repeatability/datasets/dblp-dataset.html) by [Prof. Dr. Felix Naumann](https://hpi.de/naumann/people/felix-naumann.html) available in [DBLP10k.csv](https://hpi.de/fileadmin/user_upload/fachgebiete/naumann/projekte/repeatability/DBLP/DBLP10k.csv) is a set of 10K labels (5K true, 5K false) for pairs of authors. We use it to train our entity resoultion model.
+* [DBLP Official Dataset](https://dblp.org/faq/How+can+I+download+the+whole+dblp+dataset.html) is available at [https://dblp.org/xml/dblp.xml.gz](https://dblp.org/xml/dblp.xml.gz).
+* [Feilx Naumann's DBLP Dataset 2](https://hpi.de/naumann/projects/repeatability/datasets/dblp-dataset.html) by [Prof. Dr. Felix Naumann](https://hpi.de/naumann/people/felix-naumann.html) available in [DBLP10k.csv](https://hpi.de/fileadmin/user_upload/fachgebiete/naumann/projekte/repeatability/DBLP/DBLP10k.csv) is a set of 10K labels (5K true, 5K false) for pairs of authors. We use it to train our entity resoultion model.
+
+Note that there are additional labels available as XML that we haven't parsed yet at:
+
+* [Felix Nauman's DBLP Dataset 1](https://hpi.de/naumann/projects/repeatability/datasets/dblp-dataset.html) is available in [dblp50000.xml](https://hpi.de/fileadmin/user_upload/fachgebiete/naumann/projekte/repeatability/DBLP/dblp50000.xml)
 
 #### Collecting and Preparing the Training Data
 
