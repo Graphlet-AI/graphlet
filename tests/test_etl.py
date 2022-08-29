@@ -212,14 +212,115 @@ def get_good_entity_df() -> pd.DataFrame:
     )
 
 
-def test_entity_schema(get_good_entity_df) -> None:
+def test_good_entity_schema(get_good_entity_df) -> None:
     """Test the entity schema."""
 
-    @pa.check_types
+    @pa.check_types(lazy=True)
     def transform(df: pa.typing.DataFrame[EntitySchema]) -> pa.typing.DataFrame[EntitySchema]:
         return df
 
     transform(get_good_entity_df)
+
+
+@pytest.fixture
+def get_test_name_with_bad_entity_df(
+    test_name: str, bad_id: bool, null_id: bool, bad_type: bool, null_type: bool
+) -> typing.Tuple[str, pd.DataFrame]:
+    """get_test_name_and_bad_entity_df Get a DataFrame unit for an EntitySchema's validation.
+
+    Call me via:
+
+    # Get a DataFrame with 5 good records and one bad entity_id
+    @pytest.mark.parametrize("bad_id, null_id, bad_type, null_type", [True, False, False, False])
+    def test_dataframe(get_bad_entity_df) -> None:
+        ...
+
+    Parameters
+    ----------
+    test_name: str
+        The name of the test
+    bad_id : bool
+        Add a record with a bad entity_id, by default False
+    null_id : bool
+        Add a record with a null entity_id, by default False
+    bad_type : bool
+        Add a record with a bad entity_type, by default False
+    null_type : bool
+        Add a record with a null entity_type, by default False
+
+    Returns
+    -------
+    pd.DataFrame
+        A test DataFrame with good and whichever bad records we ask for
+    """
+
+    # Start out with some good records...
+    records: typing.List[typing.Dict[str, typing.Union[str, None]]] = [
+        {
+            "entity_id": str(uuid4()),
+            "entity_type": "node",
+        }
+        for x in range(0, 4)
+    ]
+
+    # And add whatever bad records we ask for :)
+    if bad_id:
+        records.append({"entity_id": "not-a-uuid", "entity_type": "node"})
+
+    if null_id:
+        records.append({"entity_id": None, "entity_type": "node"})
+
+    if bad_type:
+        records.append({"entity_id": str(uuid4()), "entity_type": "foobar"})
+
+    if null_type:
+        records.append({"entity_id": str(uuid4()), "entity_type": None})
+
+    return test_name, pd.DataFrame(records)
+
+
+@pytest.mark.parametrize(
+    "test_name, bad_id, null_id, bad_type, null_type",
+    [
+        ("bad_id", True, False, False, False),
+        ("null_id", False, True, False, False),
+        ("bad_type", False, False, True, False),
+        ("null_type", False, False, False, True),
+    ],
+)
+def test_bad_entity_schema(get_test_name_and_bad_entity_df) -> None:
+    """Test the entity schema with four different versions of bad data."""
+
+    test_name, bad_entity_df = get_test_name_and_bad_entity_df
+
+    @pa.check_types(lazy=True)
+    def transform(df: pa.typing.DataFrame[EntitySchema]) -> pa.typing.DataFrame[EntitySchema]:
+        return df
+
+    error_df = pd.DataFrame([])
+    try:
+        transform(bad_entity_df)
+    except pa.errors.SchemaErrors as e:
+        error_df = e.failure_cases
+        print(test_name, error_df.head())
+
+        error_case = error_df.iloc[0]["failure_case"]
+
+        # Did it detect a non-UUID entity_id?
+        if test_name == "bad_id":
+            assert error_case == "not-a-uuid"
+
+        # Did it detect a null entity_id?
+        if test_name == "null_id":
+            assert error_case is None
+
+        # Is entity_type outside of node/edge?
+        if test_name == "bad_type":
+            assert error_case == "foobar"
+
+        # Is entity_type null?
+        if test_name == "null_type":
+            assert error_case is None
 
 
 # class Movie(NodeBase):

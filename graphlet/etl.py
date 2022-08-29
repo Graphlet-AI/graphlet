@@ -4,12 +4,13 @@ import typing
 
 import pandas as pd  # type: ignore
 import pandera as pa
-from pandera.typing import Series
+from pandera.typing import Index, Series
 
 
 class EntitySchema(pa.SchemaModel):
     """EntitySchema - a UUID entity_id and an entity_type: node/edge."""
 
+    index: Index[int]
     entity_id: Series[str] = pa.Field(nullable=False)
     entity_type: Series[str] = pa.Field(isin=["node", "edge"], nullable=False)
 
