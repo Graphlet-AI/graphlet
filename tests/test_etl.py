@@ -222,10 +222,7 @@ def test_good_entity_schema(get_good_entity_df) -> None:
     transform(get_good_entity_df)
 
 
-@pytest.fixture
-def get_test_name_with_bad_entity_df(
-    test_name: str, bad_id: bool, null_id: bool, bad_type: bool, null_type: bool
-) -> typing.Tuple[str, pd.DataFrame]:
+def bad_entity_df(bad_id: bool, null_id: bool, bad_type: bool, null_type: bool) -> pd.DataFrame:
     """get_test_name_and_bad_entity_df Get a DataFrame unit for an EntitySchema's validation.
 
     Call me via:
@@ -276,7 +273,7 @@ def get_test_name_with_bad_entity_df(
     if null_type:
         records.append({"entity_id": str(uuid4()), "entity_type": None})
 
-    return test_name, pd.DataFrame(records)
+    return pd.DataFrame(records)
 
 
 @pytest.mark.parametrize(
@@ -288,21 +285,20 @@ def get_test_name_with_bad_entity_df(
         ("null_type", False, False, False, True),
     ],
 )
-def test_bad_entity_schema(get_test_name_and_bad_entity_df) -> None:
+def test_bad_entity_schema(test_name, bad_id, null_id, bad_type, null_type) -> None:
     """Test the entity schema with four different versions of bad data."""
-
-    test_name, bad_entity_df = get_test_name_and_bad_entity_df
 
     @pa.check_types(lazy=True)
     def transform(df: pa.typing.DataFrame[EntitySchema]) -> pa.typing.DataFrame[EntitySchema]:
         return df
 
-    error_df = pd.DataFrame([])
+    # Use the arguments to get a pd.DataFrame with the right kind of errors
+    error_df = bad_entity_df(bad_id, null_id, bad_type, null_type)
+
     try:
-        transform(bad_entity_df)
+        transform(error_df)
     except pa.errors.SchemaErrors as e:
         error_df = e.failure_cases
-        print(test_name, error_df.head())
 
         error_case = error_df.iloc[0]["failure_case"]
 
@@ -321,50 +317,3 @@ def test_bad_entity_schema(get_test_name_and_bad_entity_df) -> None:
         # Is entity_type null?
         if test_name == "null_type":
             assert error_case is None
-
-
-# class Movie(NodeBase):
-#     """Movie genres."""
-
-#     entity_type = "movie"
-#     title: str
-#     genre: typing.Optional[str]
-
-# def test_node() -> None:
-#     """test_node Test the EdgeBase class."""
-
-#     comedy_node = Movie(title="Coming to America", genre="comedy")
-#     assert comedy_node.genre == "comedy"
-
-
-# class Director(NodeBase):
-#     """A person in hollywood."""
-
-#     entity_type = "director"
-#     name: str
-#     nationality: typing.Optional[str]
-
-# class Directed(EdgeBase):
-#     """A director directed a movie."""
-
-#     entity_type = "directed"
-
-# def test_nodes_edge() -> None:
-#     """test_edge Test the Relationship class."""
-
-#     comedy_node = Movie(title="Trauma", genre="horror")
-#     director_node = Director(name="Dario Argento")
-#     director_edge = Directed(src=director_node.entity_id, dst=comedy_node.entity_id, entity_type="director")
-
-#     # Test ze nodes
-#     assert comedy_node.genre == "horror"
-#     assert director_node.name == "Dario Argento"
-
-#     # Test ze edge
-#     assert director_edge.src == director_node.entity_id
-#     assert director_edge.dst == comedy_node.entity_id
-
-# class NoType(EntityBase):
-#     """An entity without a specified type."""
-
-#     pass
