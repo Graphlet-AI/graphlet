@@ -15,7 +15,7 @@ from pyspark import SparkContext
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import PandasUDFType
 
-from graphlet.etl import EdgeSchema, EntitySchema
+from graphlet.etl import EdgeSchema, EntitySchema, NodeSchema
 
 
 @pytest.fixture
@@ -390,7 +390,18 @@ def test_pandera_pyspark(get_good_spark_df):
         _description_
     """
 
-    @pa.check_types(lazy=True)
-    def transform(df: pa.typing.DataFrame[EntitySchema]) -> pa.typing.DataFrame[EntitySchema]:
+    class PersonSchema(NodeSchema):
 
+        name: pa.typing.Series[str] = pa.Field(
+            str_length=3,
+        )
+
+    from pandera.typing.pyspark import DataFrame
+
+    @pa.check_types(lazy=True)
+    def transform(df: DataFrame[NodeSchema]) -> DataFrame[PersonSchema]:
+
+        df["testola"] = 7
         return df
+
+    transform(get_good_spark_df)

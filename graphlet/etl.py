@@ -1,6 +1,8 @@
 """Contains base classes for entities within a property graph ontology to make ETL easier."""
 
-import pandas as pd  # type: ignore
+# import typing
+
+# import pandas as pd  # type: ignore
 import pandera as pa
 from pandera.typing import Index, Series
 
@@ -43,30 +45,30 @@ class EdgeSchema(EntitySchema):
     )
 
 
-class EntityBase:
-    """EntityBase - static base class for ETL with Spark DataFrames with Pandera validation."""
+# class EntityBase:
+#     """EntityBase - static base class for ETL with Spark DataFrames with Pandera validation."""
 
-    schema: EntitySchema = EntitySchema()
+#     schema: typing.Type[EntitySchema] = EntitySchema
 
-    @classmethod
-    def ingest(cls, df: pd.DataFrame) -> pd.DataFrame:
-        """ingest raw data to build an entity.
+#     @classmethod
+#     def ingest(cls, df: pd.DataFrame) -> pd.DataFrame:
+#         """ingest raw data to build an entity.
 
-        Returns
-        -------
-        pd.DataFrame
-            Validated DataFrame or DataFrame of errors - or is it?
-        """
-        return df
-
-
-class NodeBase(EntityBase):
-    """NodeBase - base class for nodes."""
-
-    schema: NodeSchema = NodeSchema()
+#         Returns
+#         -------
+#         pd.DataFrame
+#             Validated DataFrame or DataFrame of errors - or is it?
+#         """
+#         return df
 
 
-class EdgeBase(pa.SchemaModel):
-    """EdgeBase - base class for edges."""
+# class NodeBase(EntityBase):
+#     """NodeBase - base class for nodes."""
 
-    schema: EdgeSchema = EdgeSchema()
+#     schema: typing.Type[NodeSchema] = NodeSchema
+
+
+# class EdgeBase(EntityBase):
+#     """EdgeBase - base class for edges."""
+
+#     schema: typing.Type[EdgeSchema] = EdgeSchema
