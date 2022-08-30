@@ -539,6 +539,14 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "names"
+version = "0.3.0"
+description = "Generate random names"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "nest-asyncio"
 version = "1.5.5"
 description = "Patch asyncio to allow nested event loops"
@@ -1200,7 +1208,7 @@ python-versions = ">=3.4"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "5a6247259c6d4dfdf26cd5cdec0d39e7508af9a6bf9fbcf608ed3167510acdc7"
+content-hash = "ed06964a5e8dc275a11e98bc636b5b45acd1b1f0f426127a264712a6f46048b0"
 
 [metadata.files]
 appnope = [
@@ -1500,6 +1508,9 @@ mypy = [
 mypy-extensions = [
     {file = "mypy_extensions-0.4.3-py2.py3-none-any.whl", hash = "sha256:090fedd75945a69ae91ce1303b5824f428daf5a028d2f6ab8a299250a846f15d"},
     {file = "mypy_extensions-0.4.3.tar.gz", hash = "sha256:2d82818f5bb3e369420cb3c4060a7970edba416647068eb4c5343488a6c604a8"},
+]
+names = [
+    {file = "names-0.3.0.tar.gz", hash = "sha256:726e46254f2ed03f1ffb5d941dae3bc67c35123941c29becd02d48d0caa2a671"},
 ]
 nest-asyncio = [
     {file = "nest_asyncio-1.5.5-py3-none-any.whl", hash = "sha256:b98e3ec1b246135e4642eceffa5a6c23a3ab12c82ff816a92c612d68205813b2"},
