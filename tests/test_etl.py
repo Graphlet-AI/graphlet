@@ -6,6 +6,7 @@ import typing
 # from typing import TypeVar
 from uuid import uuid4
 
+import names
 import pandas as pd  # type: ignore
 import pandera as pa
 import pyspark.sql.functions as F
@@ -13,7 +14,6 @@ import pyspark.sql.types as T
 import pytest
 from pyspark import SparkContext
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import PandasUDFType
 
 from graphlet.etl import EdgeSchema, EntitySchema, NodeSchema
 
@@ -154,7 +154,7 @@ def test_pandas_spark_etl(spark_session_context: typing.Tuple[SparkSession, Spar
 
     spark, sc = spark_session_context
 
-    @F.pandas_udf(T.IntegerType(), PandasUDFType.SCALAR)
+    @F.pandas_udf(T.IntegerType(), F.PandasUDFType.SCALAR)
     def text_runtime_to_minutes_pandas_udf(x: pd.Series) -> pd.Series:
         """text_runtime_to_minutes_pandas_udf pandas_udf that runs text_runtime_to_minutes.
 
@@ -170,7 +170,7 @@ def test_pandas_spark_etl(spark_session_context: typing.Tuple[SparkSession, Spar
         """
         return x.apply(text_runtime_to_minutes).astype("int")
 
-    @F.pandas_udf("string", PandasUDFType.SCALAR)
+    @F.pandas_udf("string", F.PandasUDFType.SCALAR)
     def stanard_unrated_pandas_udf(x: pd.Series[str]) -> pd.Series[str]:
         """stanard_unrated_udf UDF that cleans up movie ratings.
 
@@ -396,12 +396,44 @@ def test_pandera_pyspark(get_good_spark_df):
             str_length=3,
         )
 
-    from pandera.typing.pyspark import DataFrame
+    class Person:
+        """A Person class."""
 
-    @pa.check_types(lazy=True)
-    def transform(df: DataFrame[NodeSchema]) -> DataFrame[PersonSchema]:
+        # Possible syntax! Our own decorator :)
+        # column_udf(f, input_column, output_column)
+        @classmethod
+        @classmethod
+        @pa.check_output(PersonSchema.to_schema(), "df", lazy=True)
+        def ingest(cls, df: pa.typing.DataFrame) -> pa.typing.DataFrame[PersonSchema]:
+            """ingest Turn an Entity into a Person.
 
-        df["testola"] = 7
-        return df
+            Parameters
+            ----------
+            df : pa.typing.DataFrame
+                An input DataFrame
 
-    transform(get_good_spark_df)
+            Returns
+            -------
+            pa.typing.DataFrame[PersonSchema]
+                A Person record
+            """
+
+            @F.pandas_udf("string")
+            def add_random_name() -> pa.typing.Series[str]:
+                """add_random_name Adds a random name to a DataFrame.
+
+                Returns
+                -------
+                pa.typing.Series[str]
+                    A random name
+                """
+                return names.get_full_name()
+
+            df = df.withColumn("name", add_random_name)
+
+            # Let's validate those new columns...
+            PersonSchema.validate(df)
+
+            return df
+
+    Person.ingest(get_good_spark_df)

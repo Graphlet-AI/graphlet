@@ -1,10 +1,10 @@
 """Contains base classes for entities within a property graph ontology to make ETL easier."""
 
-# import typing
+import typing
 
 # import pandas as pd  # type: ignore
 import pandera as pa
-from pandera.typing import Index, Series
+from pandera.typing import DataFrame, Index, Series
 
 
 class EntitySchema(pa.SchemaModel):
@@ -45,30 +45,58 @@ class EdgeSchema(EntitySchema):
     )
 
 
-# class EntityBase:
-#     """EntityBase - static base class for ETL with Spark DataFrames with Pandera validation."""
+class EntityBase:
+    """EntityBase - static base class for ETL with Spark DataFrames with Pandera validation."""
 
-#     schema: typing.Type[EntitySchema] = EntitySchema
+    schema: typing.Type[EntitySchema] = EntitySchema
 
-#     @classmethod
-#     def ingest(cls, df: pd.DataFrame) -> pd.DataFrame:
-#         """ingest raw data to build an entity.
+    @pa.check_types(lazy=True)
+    def ingest(cls, df: DataFrame[EntitySchema]) -> DataFrame[EntitySchema]:
+        """ingest stub method to ingest raw data to build an entity.
 
-#         Returns
-#         -------
-#         pd.DataFrame
-#             Validated DataFrame or DataFrame of errors - or is it?
-#         """
-#         return df
+        This shouldn't be used, it is a stub.
 
-
-# class NodeBase(EntityBase):
-#     """NodeBase - base class for nodes."""
-
-#     schema: typing.Type[NodeSchema] = NodeSchema
+        Returns
+        -------
+        pa.typing.DataFrame
+            Validated DataFrame or DataFrame of errors - or is it?
+        """
+        return df
 
 
-# class EdgeBase(EntityBase):
-#     """EdgeBase - base class for edges."""
+class NodeBase(EntityBase):
+    """NodeBase - base class for nodes."""
 
-#     schema: typing.Type[EdgeSchema] = EdgeSchema
+    schema: typing.Type[NodeSchema] = NodeSchema
+
+    @pa.check_types(lazy=True)
+    def ingest(cls, df: DataFrame[NodeSchema]) -> DataFrame[NodeSchema]:
+        """ingest stub method to ingest raw data to build an entity.
+
+        This shouldn't be used, it is a stub.
+
+        Returns
+        -------
+        pa.typing.DataFrame
+            Validated DataFrame or DataFrame of errors - or is it?
+        """
+        return df
+
+
+class EdgeBase(EntityBase):
+    """EdgeBase - base class for edges."""
+
+    schema: typing.Type[EdgeSchema] = EdgeSchema
+
+    @pa.check_types(lazy=True)
+    def ingest(cls, df: DataFrame[EdgeSchema]) -> DataFrame[EdgeSchema]:
+        """ingest stub method to ingest raw data to build an entity.
+
+        This shouldn't be used, it is a stub.
+
+        Returns
+        -------
+        pa.typing.DataFrame
+            Validated DataFrame or DataFrame of errors - or is it?
+        """
+        return df
