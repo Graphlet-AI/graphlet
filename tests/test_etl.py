@@ -1,5 +1,6 @@
 """Implements unit tests of Graphlet's spark module."""
 
+import random
 import typing
 
 # from typing import TypeVar
@@ -14,7 +15,7 @@ from pyspark import SparkContext
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import PandasUDFType
 
-from graphlet.etl import EntitySchema
+from graphlet.etl import EdgeSchema, EntitySchema
 
 
 @pytest.fixture
@@ -213,7 +214,7 @@ def get_good_entity_df() -> pd.DataFrame:
 
 
 def test_good_entity_schema(get_good_entity_df) -> None:
-    """Test the entity schema."""
+    """Test the entity schema using a pd.DataFrame with all good records."""
 
     @pa.check_types(lazy=True)
     def transform(df: pa.typing.DataFrame[EntitySchema]) -> pa.typing.DataFrame[EntitySchema]:
@@ -317,3 +318,79 @@ def test_bad_entity_schema(test_name, bad_id, null_id, bad_type, null_type) -> N
         # Is entity_type null?
         if test_name == "null_type":
             assert error_case is None
+
+
+@pytest.fixture
+def get_good_edge_df() -> pd.DataFrame:
+    """get_good_edge_df Generate a pd.DataFrame full of valid edges.
+
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame of valid edges
+    """
+    records: pd.DataFrame = pd.DataFrame(
+        [
+            {
+                "entity_id": str(uuid4()),
+                "entity_type": "edge",
+                "src": str(uuid4()),
+                "dst": str(uuid4()),
+            }
+            for x in range(0, 4)
+        ]
+    )
+    return records
+
+
+def test_transformed_edge_schema(get_good_edge_df) -> None:
+    """Test the entity schema using a pd.DataFrame with all good records."""
+
+    class WeightedEdgeSchema(EdgeSchema):
+        weight: pa.typing.Series[float] = pa.Field(gt=0)
+
+    @pa.check_types(lazy=True)
+    def transform(df: pa.typing.DataFrame[EdgeSchema]) -> pa.typing.DataFrame[WeightedEdgeSchema]:
+        df["weight"] = df["entity_id"].apply(lambda x: random.uniform(0, 1))
+        return df
+
+    transform(get_good_edge_df)
+
+
+@pytest.fixture
+def get_good_spark_df(spark_session_context):
+    """Get a DataFrame fit for an EntitySchema's validation."""
+
+    spark: SparkSession = spark_session_context[0]
+
+    return spark.createDataFrame(
+        pd.DataFrame(
+            [
+                {
+                    "entity_id": str(uuid4()),
+                    "entity_type": "node",
+                }
+                for x in range(0, 5)
+            ]
+        )
+    )
+
+
+def test_pandera_pyspark(get_good_spark_df):
+    """test_pandera_pyspark test Pandera's PySpark DataFrame support.
+
+    Parameters
+    ----------
+    get_good_spark_df : _type_
+        _description_
+
+    Returns
+    -------
+    _type_
+        _description_
+    """
+
+    @pa.check_types(lazy=True)
+    def transform(df: pa.typing.DataFrame[EntitySchema]) -> pa.typing.DataFrame[EntitySchema]:
+
+        return df
