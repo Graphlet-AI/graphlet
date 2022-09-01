@@ -2,9 +2,11 @@
 
 import gzip
 import os
+import typing
+import uuid
 from urllib.parse import unquote, urlparse
 
-import pandas as pd  # type: ignore
+import pandas as pd
 import requests
 import tqdm
 import ujson
@@ -14,6 +16,43 @@ from graphlet.paths import get_data_dir
 
 DBLP_XML_URL = "https://dblp.org/xml/dblp.xml.gz"
 DBLP_LABELS_URL = " https://hpi.de/fileadmin/user_upload/fachgebiete/naumann/projekte/repeatability/DBLP/dblp50000.xml"
+DBLP_COLUMNS = {
+    "simple": [
+        "@key",
+        "@cdate",
+        "@mdate",
+        "@publtype",
+        "address",
+        "booktitle",
+        "cdrom",
+        "chapter",
+        "cite",
+        "crossref",
+        "ee",
+        "isbn",
+        "journal",
+        "month",
+        "note",
+        "number",
+        "pages",
+        "publisher",
+        "publnr",
+        "school",
+        "title",
+        "url",
+        "volume",
+        "year",
+    ],
+    # Just for docs, not used below
+    "complex": [
+        "author",
+        "editor",
+        "series",
+    ],
+}
+
+# Just for docs, not used below
+GRAPHLET_COLUMNS = ["entity_id", "entity_type", "entity_class"]
 
 pd.set_option("display.max_columns", None)
 
@@ -92,9 +131,11 @@ def dblp_to_json_lines(folder: str = get_data_dir(), gzip_: bool = True) -> None
                 f.write((ujson.dumps(obj_) + "\n").encode())
 
 
-def build_network() -> None:
+def build_nodes() -> None:
     """build_network build a network out of the DBLP data including SAME_AS edges for authors."""
     dfs = {}
+    nodes = []
+
     for type_ in [
         "article",
         "book",
@@ -107,14 +148,152 @@ def build_network() -> None:
     ]:
         path_ = f"data/types/{type_}.json.gz"
 
+        # Load each type's Gzip JSON Lines file and build a pd.DataFrame
         with gzip.GzipFile(filename=path_, mode="rb") as f:
             records = [ujson.loads(record.decode()) for record in f]
             dfs[type_] = pd.DataFrame.from_records(records)
+
+            for type_, df in dfs.items():
+
+                for index, row in df.iterrows():
+                    d = row.to_dict()
+                    n = build_node(d, type_)
+                    nodes.append(n)
+
+    node_df = pd.DataFrame(nodes)
+    node_df.to_parquet("data/dblp.nodes.parquet")
+
+
+def parse_series(x: typing.Union[str, dict]) -> dict:
+    """parse_series "series" can be a string or dict, always return a dict.
+
+    Parameters
+    ----------
+    x : dict
+        input dictionary
+    node : dict
+        output dictionary
+
+    Returns
+    -------
+    dict
+        output dictionary with series field
+    """
+
+    y = {}
+    if isinstance(x, str):
+        y = {
+            "#text": x,
+            "@href": None,
+        }
+    if isinstance(x, dict):
+        y = x
+
+    return y
+
+
+def parse_person_instance(x: typing.Union[str, dict]) -> dict:
+    """parse_person_instance parse a string or dict instance of a person into a dict.
+
+    Parameters
+    ----------
+    x : dict
+        The input dictionary
+    node : dict
+        The in progress output dictionary
+    """
+
+    p = {}
+    if isinstance(x, str):
+        p = {"#text": x, "@orcid": None}
+    if isinstance(x, dict):
+        p = x
+
+    return p
+
+
+def build_node(x: dict, class_type: str) -> dict:
+    """build_node parse a DBLP dict from the parsed XML and turn it into a node record with all columns.
+
+    Parameters
+    ----------
+    x : typing.Dict[str: typing.Any]
+        A dict from any of the types of XML records in DBLP.
+
+    Returns
+    -------
+    dict
+        A complete dict with all fields in an identical format.
+    """
+
+    node: dict = {"entity_id": str(uuid.uuid4()), "entity_type": "node", "class_type": class_type}
+
+    for column in DBLP_COLUMNS["simple"]:
+        if column in x:
+            node[column] = x
+        else:
+            node[column] = None
+
+    # Handle "author" as a list, string or dict and always create an "authors" field as a list of objects
+    if "author" in x:
+
+        if isinstance(x["author"], list):
+            node["author"] = []
+            for a in x["author"]:
+                node["author"].append(parse_person_instance(a))
+        else:
+            node["author"] = [parse_person_instance(x)]
+
+    else:
+        node["authors"] = [
+            {
+                "#text": None,
+                "@orcid": None,
+            }
+        ]
+
+    # Handle "editor" as a list, string or dict and always create an "editors" field as a list of objects
+    if "editor" in x:
+
+        if isinstance(x["editor"], list):
+            node["editor"] = []
+            for a in x["editor"]:
+                node["editor"].append(parse_person_instance(a))
+        else:
+            node["editor"] = [parse_person_instance(x)]
+
+    else:
+        node["editors"] = [
+            {
+                "#text": None,
+                "@orcid": None,
+            }
+        ]
+
+    # Handle "series" which can be a string or dict
+    if "series" in x:
+        node["series"] = parse_series(x["series"])
+    else:
+        node["series"] = {
+            "#text": None,
+            "@href": None,
+        }
+
+    return node
 
 
 def main() -> None:
     """main get the DBLP XML and entity resolution labels, then ETL build a network."""
 
+    # Download the XML for DBLP
     download(DBLP_XML_URL, gzip_=True)
+    # Download the labels for DBLP
     download(DBLP_LABELS_URL, gzip_=True)
+    # Convert DBLP to JSON Lines
     dblp_to_json_lines(gzip_=True)
+    # Build a uniform set of network nodes: https://gist.github.com/rjurney/c5637f9d7b3bfb094b79e62a704693da
+    build_nodes()
+
+
+if __name__ == "__main__":
+    main()
