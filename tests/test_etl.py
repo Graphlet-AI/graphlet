@@ -6,8 +6,8 @@ import typing
 # from typing import TypeVar
 from uuid import uuid4
 
-import names
-import pandas as pd  # type: ignore
+import names  # type: ignore
+import pandas as pd
 import pandera as pa
 import pyspark.sql.functions as F
 import pyspark.sql.types as T
@@ -155,7 +155,7 @@ def test_pandas_spark_etl(spark_session_context: typing.Tuple[SparkSession, Spar
     spark, sc = spark_session_context
 
     @F.pandas_udf(T.IntegerType(), F.PandasUDFType.SCALAR)
-    def text_runtime_to_minutes_pandas_udf(x: pd.Series) -> pd.Series:
+    def text_runtime_to_minutes_pandas_udf(x: pd.Series) -> typing.Union[pd.DataFrame, pd.Series]:
         """text_runtime_to_minutes_pandas_udf pandas_udf that runs text_runtime_to_minutes.
 
         Parameters
@@ -171,7 +171,7 @@ def test_pandas_spark_etl(spark_session_context: typing.Tuple[SparkSession, Spar
         return x.apply(text_runtime_to_minutes).astype("int")
 
     @F.pandas_udf("string", F.PandasUDFType.SCALAR)
-    def stanard_unrated_pandas_udf(x: pd.Series[str]) -> pd.Series[str]:
+    def stanard_unrated_pandas_udf(x: pd.Series) -> pd.Union[pd.DataFrame, pd.Series]:
         """stanard_unrated_udf UDF that cleans up movie ratings.
 
         Parameters
@@ -402,7 +402,6 @@ def test_pandera_pyspark(get_good_spark_df):
         # Possible syntax! Our own decorator :)
         # column_udf(f, input_column, output_column)
         @classmethod
-        @classmethod
         @pa.check_output(PersonSchema.to_schema(), "df", lazy=True)
         def ingest(cls, df: pa.typing.DataFrame) -> pa.typing.DataFrame[PersonSchema]:
             """ingest Turn an Entity into a Person.
@@ -418,8 +417,9 @@ def test_pandera_pyspark(get_good_spark_df):
                 A Person record
             """
 
+            @staticmethod
             @F.pandas_udf("string")
-            def add_random_name() -> pa.typing.Series[str]:
+            def add_random_name(s: pd.Series) -> pd.Series:
                 """add_random_name Adds a random name to a DataFrame.
 
                 Returns
@@ -427,9 +427,10 @@ def test_pandera_pyspark(get_good_spark_df):
                 pa.typing.Series[str]
                     A random name
                 """
-                return names.get_full_name()
+                return s.apply(names.get_full_name)
 
-            df = df.withColumn("name", add_random_name)
+            pandas_df = df.pandas_api()
+            pandas_df["name"] = pandas_df["entity_id"].apply(add_random_name)
 
             # Let's validate those new columns...
             PersonSchema.validate(df)

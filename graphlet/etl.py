@@ -5,6 +5,7 @@ import typing
 # import pandas as pd  # type: ignore
 import pandera as pa
 from pandera.typing import DataFrame, Index, Series
+from pandera.typing.common import DataFrameBase
 
 
 class EntitySchema(pa.SchemaModel):
@@ -48,10 +49,10 @@ class EdgeSchema(EntitySchema):
 class EntityBase:
     """EntityBase - static base class for ETL with Spark DataFrames with Pandera validation."""
 
-    schema: typing.Type[EntitySchema] = EntitySchema
+    schema: typing.Type[pa.SchemaModel] = EntitySchema
 
     @pa.check_types(lazy=True)
-    def ingest(cls, df: DataFrame[EntitySchema]) -> DataFrame[EntitySchema]:
+    def ingest(cls, df: DataFrame[typing.Type[pa.SchemaModel]]) -> DataFrameBase[EntitySchema]:
         """ingest stub method to ingest raw data to build an entity.
 
         This shouldn't be used, it is a stub.
@@ -61,16 +62,16 @@ class EntityBase:
         pa.typing.DataFrame
             Validated DataFrame or DataFrame of errors - or is it?
         """
-        return df
+        return EntitySchema.validate(df)
 
 
 class NodeBase(EntityBase):
     """NodeBase - base class for nodes."""
 
-    schema: typing.Type[NodeSchema] = NodeSchema
+    schema: typing.Type[pa.SchemaModel] = NodeSchema
 
     @pa.check_types(lazy=True)
-    def ingest(cls, df: DataFrame[NodeSchema]) -> DataFrame[NodeSchema]:
+    def ingest(cls, df: DataFrame[typing.Type[pa.SchemaModel]]) -> DataFrameBase[EntitySchema]:
         """ingest stub method to ingest raw data to build an entity.
 
         This shouldn't be used, it is a stub.
@@ -86,10 +87,10 @@ class NodeBase(EntityBase):
 class EdgeBase(EntityBase):
     """EdgeBase - base class for edges."""
 
-    schema: typing.Type[EdgeSchema] = EdgeSchema
+    schema: typing.Type[pa.SchemaModel] = EdgeSchema
 
     @pa.check_types(lazy=True)
-    def ingest(cls, df: DataFrame[EdgeSchema]) -> DataFrame[EdgeSchema]:
+    def ingest(cls, df: DataFrame[typing.Type[pa.SchemaModel]]) -> DataFrameBase[EntitySchema]:
         """ingest stub method to ingest raw data to build an entity.
 
         This shouldn't be used, it is a stub.
