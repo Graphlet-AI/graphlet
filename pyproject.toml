@@ -69,6 +69,7 @@ pyarrow = "^9.0.0"
 cloudpickle = "^2.1.0"
 pandera = "^0.11.0"
 networkx = "^2.8.6"
+pandas-stubs = "<=1.4.3.220807"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
@@ -93,6 +94,7 @@ ipykernel = "^6.15.1"
 
 [tool.poetry.group.dev.dependencies]
 names = "^0.3.0"
+xq = "^0.0.4"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -114,3 +116,4 @@ warn_return_any = true
 warn_unused_configs = true
 warn_redundant_casts = true
 warn_unused_ignores = true
+exclude = ["tests/"]
