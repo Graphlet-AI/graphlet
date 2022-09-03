@@ -219,8 +219,7 @@ def build_nodes() -> None:
     """build_nodes build a network out of the DBLP data including SAME_AS edges for authors."""
     dfs = {}
     nodes = []
-
-    for type_ in [
+    types_ = [
         "article",
         "book",
         "incollection",
@@ -229,7 +228,9 @@ def build_nodes() -> None:
         "phdthesis",
         "proceedings",
         "www",
-    ]:
+    ]
+
+    for type_ in types_:
         path_ = f"data/types/{type_}.json.gz"
 
         # Load each type's Gzip JSON Lines file and build a pd.DataFrame
@@ -244,7 +245,7 @@ def build_nodes() -> None:
             dfs[type_] = pd.DataFrame.from_records(records)
 
             # Build the nodes for each type
-            print(f"Building node for each of {len(dfs.keys())} classes ...")
+            print(f"Building node for each of {len(types_)} classes ...")
             for type_, df in dfs.items():
 
                 print(f"Building nodes for class {type_} ...")
