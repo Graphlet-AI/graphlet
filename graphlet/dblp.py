@@ -27,7 +27,6 @@ DBLP_COLUMNS = {
         "cdrom",
         "chapter",
         "crossref",
-        "ee",
         "isbn",
         "journal",
         "month",
@@ -48,6 +47,7 @@ DBLP_COLUMNS = {
         "cite",
         "editor",
         "series",
+        "ee",
     ],
 }
 
@@ -151,6 +151,17 @@ def parse_person_instance(x: typing.Union[str, dict]) -> dict:
     return p
 
 
+def parse_ee(x) -> typing.Optional[dict]:
+    """parse_ee parse the ee record whether it is a string or dict."""
+
+    if isinstance(x, str):
+        return {"@type": "unknown", "#text": x}
+    if isinstance(x, dict):  # noqa: R503
+        return x
+
+    return None
+
+
 def build_node(x: dict, class_type: str) -> dict:  # noqa: C901
     """build_node parse a DBLP dict from the parsed XML and turn it into a node record with all columns.
 
@@ -211,6 +222,13 @@ def build_node(x: dict, class_type: str) -> dict:  # noqa: C901
     # Ensure all cites are a list
     if "cite" in x:
         node["cites"] = x["cite"] if isinstance(x["cite"], list) else [x["cite"]]
+
+    # Parse the "ee" field which can be str, list(str), dict or list(dict)
+    if "ee" in x:
+        if isinstance(x["ee"], list):
+            node["ee"] = [parse_ee(e) for e in x["ee"]]
+        else:
+            node["ee"] = [parse_ee(x["ee"])]
 
     return node
 
