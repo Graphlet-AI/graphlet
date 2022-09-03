@@ -26,7 +26,6 @@ DBLP_COLUMNS = {
         "booktitle",
         "cdrom",
         "chapter",
-        "cite",
         "crossref",
         "ee",
         "isbn",
@@ -46,6 +45,7 @@ DBLP_COLUMNS = {
     # Just for docs, not used below
     "complex": [
         "author",
+        "cite",
         "editor",
         "series",
     ],
@@ -64,7 +64,7 @@ def download(url=DBLP_XML_URL, folder: str = get_data_dir(), gzip_=True) -> None
 
     Parameters
     ----------
-    url : _type_, optional
+    url : str, optional
         url to fetch, by default DBLP_XML_URL
     folder: str, by default get_data_dir()
     gzip_ : bool, optional
@@ -126,70 +126,9 @@ def dblp_to_json_lines(folder: str = get_data_dir(), gzip_: bool = True) -> None
         with gzip.GzipFile(filename=out_path, mode="wb") as f:
 
             # Dump each record with speedy ujson, and a progress bar.
-            for obj_ in tqdm.tqdm(records):
+            for obj_ in tqdm.tqdm(records, total=len(records)):
                 # Encode the JSON, we are writing gzip
                 f.write((ujson.dumps(obj_) + "\n").encode())
-
-
-def build_nodes() -> None:
-    """build_network build a network out of the DBLP data including SAME_AS edges for authors."""
-    dfs = {}
-    nodes = []
-
-    for type_ in [
-        "article",
-        "book",
-        "incollection",
-        "inproceedings",
-        "mastersthesis",
-        "phdthesis",
-        "proceedings",
-        "www",
-    ]:
-        path_ = f"data/types/{type_}.json.gz"
-
-        # Load each type's Gzip JSON Lines file and build a pd.DataFrame
-        with gzip.GzipFile(filename=path_, mode="rb") as f:
-            records = [ujson.loads(record.decode()) for record in f]
-            dfs[type_] = pd.DataFrame.from_records(records)
-
-            for type_, df in dfs.items():
-
-                for index, row in df.iterrows():
-                    d = row.to_dict()
-                    n = build_node(d, type_)
-                    nodes.append(n)
-
-    node_df = pd.DataFrame(nodes)
-    node_df.to_parquet("data/dblp.nodes.parquet")
-
-
-def parse_series(x: typing.Union[str, dict]) -> dict:
-    """parse_series "series" can be a string or dict, always return a dict.
-
-    Parameters
-    ----------
-    x : dict
-        input dictionary
-    node : dict
-        output dictionary
-
-    Returns
-    -------
-    dict
-        output dictionary with series field
-    """
-
-    y = {}
-    if isinstance(x, str):
-        y = {
-            "#text": x,
-            "@href": None,
-        }
-    if isinstance(x, dict):
-        y = x
-
-    return y
 
 
 def parse_person_instance(x: typing.Union[str, dict]) -> dict:
@@ -212,7 +151,7 @@ def parse_person_instance(x: typing.Union[str, dict]) -> dict:
     return p
 
 
-def build_node(x: dict, class_type: str) -> dict:
+def build_node(x: dict, class_type: str) -> dict:  # noqa: C901
     """build_node parse a DBLP dict from the parsed XML and turn it into a node record with all columns.
 
     Parameters
@@ -229,28 +168,20 @@ def build_node(x: dict, class_type: str) -> dict:
     node: dict = {"entity_id": str(uuid.uuid4()), "entity_type": "node", "class_type": class_type}
 
     for column in DBLP_COLUMNS["simple"]:
-        if column in x:
-            node[column] = x
-        else:
-            node[column] = None
+        node[column] = x[column] if column in x else None
 
     # Handle "author" as a list, string or dict and always create an "authors" field as a list of objects
     if "author" in x:
 
         if isinstance(x["author"], list):
-            node["author"] = []
+            node["authors"] = []
             for a in x["author"]:
-                node["author"].append(parse_person_instance(a))
+                node["authors"].append(parse_person_instance(a))
         else:
-            node["author"] = [parse_person_instance(x)]
+            node["authors"] = [parse_person_instance(x["author"])]
 
     else:
-        node["authors"] = [
-            {
-                "#text": None,
-                "@orcid": None,
-            }
-        ]
+        node["authors"] = []
 
     # Handle "editor" as a list, string or dict and always create an "editors" field as a list of objects
     if "editor" in x:
@@ -260,26 +191,97 @@ def build_node(x: dict, class_type: str) -> dict:
             for a in x["editor"]:
                 node["editor"].append(parse_person_instance(a))
         else:
-            node["editor"] = [parse_person_instance(x)]
+            node["editors"] = [parse_person_instance(x["editor"])]
 
     else:
-        node["editors"] = [
-            {
-                "#text": None,
-                "@orcid": None,
-            }
-        ]
+        node["editors"] = []
 
     # Handle "series" which can be a string or dict
     if "series" in x:
-        node["series"] = parse_series(x["series"])
+        if isinstance(x["series"], str):
+            node["series_text"] = x["series"]
+            node["series_href"] = None
+        if isinstance(x["series"], dict):
+            node["series_text"] = x["series"]["#text"]
+            node["series_href"] = x["series"]["@href"]
     else:
-        node["series"] = {
-            "#text": None,
-            "@href": None,
-        }
+        node["series_text"] = None
+        node["series_href"] = None
+
+    # Ensure all cites are a list
+    if "cite" in x:
+        node["cites"] = x["cite"] if isinstance(x["cite"], list) else [x["cite"]]
 
     return node
+
+
+def build_nodes() -> None:
+    """build_nodes build a network out of the DBLP data including SAME_AS edges for authors."""
+    dfs = {}
+    nodes = []
+
+    for type_ in [
+        "article",
+        "book",
+        "incollection",
+        "inproceedings",
+        "mastersthesis",
+        "phdthesis",
+        "proceedings",
+        "www",
+    ]:
+        path_ = f"data/types/{type_}.json.gz"
+
+        # Load each type's Gzip JSON Lines file and build a pd.DataFrame
+        print(f"Opening {type_} records at {path_} ...")
+        with gzip.GzipFile(filename=path_, mode="rb") as f:
+
+            record_count = sum([1 for x in f])
+            f.seek(0)
+
+            print(f"Parsing JSON records for {path_} ...")
+            records = [ujson.loads(record.decode()) for record in tqdm.tqdm(f, total=record_count)]
+            dfs[type_] = pd.DataFrame.from_records(records)
+
+            # Build the nodes for each type
+            print(f"Building node for each of {len(dfs.keys())} classes ...")
+            for type_, df in dfs.items():
+
+                print(f"Building nodes for class {type_} ...")
+                type_nodes = []
+                for index, row in tqdm.tqdm(df.iterrows(), total=len(df.index)):
+                    d = row.to_dict()
+                    n = build_node(d, type_)
+                    nodes.append(n)
+
+                    type_nodes.append(n)
+
+                print(f"Creating DataFrame for {type_} ...")
+                type_df = pd.DataFrame(type_nodes)
+                type_df.head()
+
+                print(f"Writing {type_} to Parquet ...")
+                type_df.to_parquet(f"data/types/{type_}.parquet")
+
+                print(f"Finished writing {type_} to Parquet ...")
+
+            print(f"Class {type_} completed!")
+
+    node_df = pd.DataFrame(nodes)
+    node_df.head()
+
+    node_df.to_parquet("data/dblp.nodes.parquet")
+
+
+def build_edges(node_df: pd.DataFrame) -> None:
+    """build_edges given the nodes, build the edges.
+
+    Parameters
+    ----------
+    node_df : pd.DataFrame
+        A DataFrame of the uniform schema defined at https://gist.github.com/rjurney/c5637f9d7b3bfb094b79e62a704693da
+    """
+    pass
 
 
 def main() -> None:
