@@ -30,7 +30,6 @@ DBLP_COLUMNS = {
         "isbn",
         "journal",
         "month",
-        "note",
         "number",
         "pages",
         "publisher",
@@ -48,6 +47,7 @@ DBLP_COLUMNS = {
         "editor",
         "series",
         "ee",
+        "note",
     ],
 }
 
@@ -131,8 +131,64 @@ def dblp_to_json_lines(folder: str = get_data_dir(), gzip_: bool = True) -> None
                 f.write((ujson.dumps(obj_) + "\n").encode())
 
 
-def parse_person_instance(x: typing.Union[str, dict]) -> dict:
-    """parse_person_instance parse a string or dict instance of a person into a dict.
+def parse_type_util(
+    x: typing.Any, text_key: str, other_key: str, default_other: typing.Optional[str]
+) -> typing.List[dict]:
+    """parse_type_util Given a list, dict or string, parse it into dict form.
+
+    Parameters
+    ----------
+    x : typing.Any
+        An instance of a person, note, etc.
+    text_key : str
+        Key to the #text field
+    other_key : str
+        Key to the other field
+    default_other : str
+        Default value for the other field
+
+    Returns
+    -------
+    dict
+        A dictionary with text_key and other_key fields
+    """
+
+    d: typing.List[dict] = []
+
+    # Strings go into the #text field, then set the other key's default value
+    if isinstance(x, str):
+        d.append({"#text": x, other_key: default_other})
+
+    # Dicts go straight though
+    if isinstance(x, dict):
+        d.append(x)
+
+    # Lists are always
+    if isinstance(x, list):
+        for y in x:
+            d += parse_type_util(y, text_key, other_key, default_other)
+
+    return d
+
+
+def parse_note(x: typing.Union[str, dict]) -> dict:
+    """parse_note_instance use parse_type_to_dict to prase a note.
+
+    Parameters
+    ----------
+    x : typing.Union[str, dict]
+        A note to parse
+
+    Returns
+    -------
+    dict
+        A parsed note
+    """
+    return parse_type_util(x, "#text", "@type", None)[0]
+
+
+def parse_person(x: typing.Union[str, dict]) -> typing.List[dict]:
+    """parse_person parse a string or dict instance of a person into a dict.
 
     Parameters
     ----------
@@ -141,25 +197,13 @@ def parse_person_instance(x: typing.Union[str, dict]) -> dict:
     node : dict
         The in progress output dictionary
     """
-
-    p = {}
-    if isinstance(x, str):
-        p = {"#text": x, "@orcid": None}
-    if isinstance(x, dict):
-        p = x
-
-    return p
+    return parse_type_util(x, "#text", "@orcid", None)
 
 
-def parse_ee(x) -> typing.Optional[dict]:
+def parse_ee(x: typing.Any) -> typing.Optional[typing.List[dict]]:
     """parse_ee parse the ee record whether it is a string or dict."""
 
-    if isinstance(x, str):
-        return {"@type": "unknown", "#text": x}
-    if isinstance(x, dict):  # noqa: R503
-        return x
-
-    return None
+    return parse_type_util(x, "#text", "@type", "unknown")
 
 
 def build_node(x: dict, class_type: str) -> dict:  # noqa: C901
@@ -183,32 +227,36 @@ def build_node(x: dict, class_type: str) -> dict:  # noqa: C901
 
     # Handle "author" as a list, string or dict and always create an "authors" field as a list of objects
     if "author" in x:
+        node["authors"] = parse_person(x["author"])
 
-        if isinstance(x["author"], list):
-            node["authors"] = []
-            for a in x["author"]:
-                node["authors"].append(parse_person_instance(a))
-        else:
-            node["authors"] = [parse_person_instance(x["author"])]
+    #     if isinstance(x["author"], list):
+    #         node["authors"] = []
+    #         for a in x["author"]:
+    #             node["authors"].append(parse_person(a))
+    #     else:
+    #         node["authors"] = [parse_person(x["author"])]
 
-    else:
-        node["authors"] = []
+    # else:
+    #     node["authors"] = []
 
     # Handle "editor" as a list, string or dict and always create an "editors" field as a list of objects
     if "editor" in x:
 
-        if isinstance(x["editor"], list):
-            node["editor"] = []
-            for a in x["editor"]:
-                node["editor"].append(parse_person_instance(a))
-        else:
-            node["editors"] = [parse_person_instance(x["editor"])]
+        node["editors"] = parse_person(x["editor"])
 
-    else:
-        node["editors"] = []
+    #     if isinstance(x["editor"], list):
+    #         node["editor"] = []
+    #         for a in x["editor"]:
+    #             node["editor"].append(parse_person(a))
+    #     else:
+    #         node["editors"] = [parse_person(x["editor"])]
+
+    # else:
+    #     node["editors"] = []
 
     # Handle "series" which can be a string or dict
     if "series" in x:
+
         if isinstance(x["series"], str):
             node["series_text"] = x["series"]
             node["series_href"] = None
@@ -229,6 +277,10 @@ def build_node(x: dict, class_type: str) -> dict:  # noqa: C901
             node["ee"] = [parse_ee(e) for e in x["ee"]]
         else:
             node["ee"] = [parse_ee(x["ee"])]
+
+    # Parse the note using the new parse_note
+    if "note" in x:
+        node["note"] = parse_note(x["note"])
 
     return node
 
