@@ -6,7 +6,7 @@
     <img src="https://github.com/Graphlet-AI/graphlet/raw/main/images/graphlet_logo.png" alt="Our mascot Orbits the Squirrel has 5 orbits. Everyone knows this about squirrels!" width="300"/>
 </p>
 
-This is the PyPi module for the Graphlet AI Property Graph Factory for building large _property graphs_. Our mission is to create a PySpark-based wizard for building large knowledge graphs in the form of property graphs that makes them easier to build for fewer dolalrs and with less risk.
+This is the PyPi module for the Graphlet AI Property Graph Factory for building enterprise knowledge graphs as _property graphs_. Our mission is to create a PySpark-based wizard for building large knowledge graphs in the form of property graphs that makes them easier to build for fewer dolalrs and with less risk.
 
 ## Motivaton
 
