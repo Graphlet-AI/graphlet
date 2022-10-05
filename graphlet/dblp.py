@@ -2,16 +2,24 @@
 
 import gzip
 import os
-import typing
 import uuid
+from typing import Any, List, Optional, Union
 from urllib.parse import unquote, urlparse
 
 import pandas as pd
+
+# import pandera as pa
 import requests
 import tqdm
 import ujson
 import xmltodict
 
+# from pandera import Check, Column, Field, Index, Series
+from pandera import Field
+from pandera.dtypes import DateTime
+from pandera.typing import Series
+
+from graphlet.etl import NodeSchema
 from graphlet.paths import get_data_dir
 
 DBLP_XML_URL = "https://dblp.org/xml/dblp.xml.gz"
@@ -24,30 +32,29 @@ DBLP_COLUMNS = {
         "@publtype",
         "address",
         "booktitle",
-        "cdrom",
         "chapter",
-        "crossref",
-        "isbn",
         "journal",
         "month",
         "number",
-        "pages",
-        "publisher",
         "publnr",
-        "school",
-        "title",
-        "url",
         "volume",
-        "year",
     ],
     # Just for docs, not used below
     "complex": [
         "author",
-        "cite",
         "editor",
         "series",
         "ee",
         "note",
+        "title",
+        "url",
+        "isbn",
+        "pages",
+        "publisher",
+        "school",
+        "cdrom",
+        "crossref",
+        "year",
     ],
 }
 
@@ -55,6 +62,30 @@ DBLP_COLUMNS = {
 GRAPHLET_COLUMNS = ["entity_id", "entity_type", "entity_class"]
 
 pd.set_option("display.max_columns", None)
+
+
+class DBLPNodeSchema(NodeSchema):
+    """DBLPNodeSchema - subclass of NodeSchema for DBLP nodes."""
+
+    key: Series[str] = Field(nullable=False, str_length=(3,))
+    mdate: Series[str] = DateTime(nullable=False)
+    cdate: Series[str] = DateTime(nullable=True)
+    address: Series[str] = Field(nullable=True)
+    booktitle: Series[str] = Field(nullable=True)
+    cdrom: Series[str] = Field(nullable=True)
+    chapter: Series[str] = Field(nullable=True)
+    crossref: Series[str] = Field(nullable=True)
+    isbn: Series[str] = Field(nullable=True)
+    journal: Series[str] = Field(nullable=True)
+    month: Series[str] = Field(nullable=True)
+    number: Series[str] = Field(nullable=True)
+    note: Series[str] = Field(nullable=True)
+    pages: Series[str] = Field(nullable=True)
+    publisher: Series[str] = Field(nullable=True)
+    publnr: Series[str] = Field(nullable=True)
+    school: Series[str] = Field(nullable=True)
+    volume: Series[str] = Field(nullable=True)
+    year: Series[str] = Field(nullable=True)
 
 
 def download(url=DBLP_XML_URL, folder: str = get_data_dir(), gzip_=True) -> None:
@@ -131,9 +162,30 @@ def dblp_to_json_lines(folder: str = get_data_dir(), gzip_: bool = True) -> None
                 f.write((ujson.dumps(obj_) + "\n").encode())
 
 
+def profile_df(df: pd.DataFrame) -> Any:
+    """profile_df Given a DBLP DataFrame, determine the column types by their values.
+
+    Parameters
+    ----------
+    x : pandas.DataFrame
+        A DataFrame with columns of different types of values.
+
+    Returns
+    -------
+    typing.Any
+        A report on what the column types should be to represent this data.
+    """
+    pass
+    # for col_ in df.columns:
+
+    #     s = df[col_]
+    #     types_ = s.apply(lambda x: type(x))
+    #     unique_types = s.unique()
+
+
 def parse_type_util(
-    x: typing.Any, text_key: str, other_key: str, default_other: typing.Optional[str]
-) -> typing.List[dict]:
+    x: Any, text_key: str, other_key: Optional[str] = None, default_other: Optional[str] = None
+) -> Optional[List[dict]]:
     """parse_type_util Given a list, dict or string, parse it into dict form.
 
     Parameters
@@ -142,9 +194,9 @@ def parse_type_util(
         An instance of a person, note, etc.
     text_key : str
         Key to the #text field
-    other_key : str
+    other_key : typing.Optional[str]
         Key to the other field
-    default_other : str
+    default_other : typing.Optional[str]
         Default value for the other field
 
     Returns
@@ -153,15 +205,27 @@ def parse_type_util(
         A dictionary with text_key and other_key fields
     """
 
-    d: typing.List[dict] = []
+    d: Optional[List[dict]] = []
 
     # Strings go into the #text field, then set the other key's default value
     if isinstance(x, str):
-        d.append({"#text": x, other_key: default_other})
+
+        r = {"#text": x}
+
+        if other_key and other_key in x:
+            r.update({other_key: default_other})
+
+        d.append(r)
 
     # Dicts go straight though
     if isinstance(x, dict):
-        d.append(x)
+
+        r = {text_key: x[text_key]}
+
+        if other_key and other_key in x:
+            r.update({other_key: x[other_key] or default_other})
+
+        d += [r]
 
     # Lists are always
     if isinstance(x, list):
@@ -171,7 +235,7 @@ def parse_type_util(
     return d
 
 
-def parse_note(x: typing.Union[str, dict]) -> dict:
+def parse_note(x: Union[str, list, dict]) -> str:
     """parse_note_instance use parse_type_to_dict to prase a note.
 
     Parameters
@@ -184,10 +248,23 @@ def parse_note(x: typing.Union[str, dict]) -> dict:
     dict
         A parsed note
     """
-    return parse_type_util(x, "#text", "@type", None)[0]
+
+    n = None
+
+    if isinstance(x, str):
+        n = x
+
+    if isinstance(x, dict):
+        n = x.get("#text")
+
+    # Lists are always empty
+    if isinstance(x, list):
+        n = None
+
+    return n
 
 
-def parse_person(x: typing.Union[str, dict]) -> typing.List[dict]:
+def parse_person(x: Union[str, dict]) -> List[dict]:
     """parse_person parse a string or dict instance of a person into a dict.
 
     Parameters
@@ -200,10 +277,235 @@ def parse_person(x: typing.Union[str, dict]) -> typing.List[dict]:
     return parse_type_util(x, "#text", "@orcid", None)
 
 
-def parse_ee(x: typing.Any) -> typing.Optional[typing.List[dict]]:
+def parse_ee(x: Any) -> Optional[List[dict]]:
     """parse_ee parse the ee record whether it is a string or dict."""
 
     return parse_type_util(x, "#text", "@type", "unknown")
+
+
+def parse_title(x: Optional[Union[str, dict]]) -> Optional[str]:
+    """parse_title parse the title str/dict of an article.
+
+    Parameters
+    ----------
+    x : typing.Optional[typing.Union[str, dict]]
+
+
+    Returns
+    -------
+    typing.Optional[str]
+        Return the string, #text dict key or None
+    """
+
+    t: Optional[str] = None
+    if isinstance(x, str):
+        t = x
+    elif isinstance(x, dict):  # noqa: SIM102
+        t = x.get("#text")
+
+    return t
+
+
+def parse_url(x: Optional[Union[str, float, list]]) -> Optional[str]:
+    """parse_url parse the urls which can be strings, lists of strings or floats (always NaN).
+
+    Parameters
+    ----------
+    x : typing.Optional[typing.Union[str, float, list]]
+        The input type: str, List[str] or float = NaN
+
+    Returns
+    -------
+    str
+        A string url for the article
+    """
+
+    u = None
+    if isinstance(x, str):
+        return u
+    if isinstance(x, list) and len(u) > 0:
+        return u[0]
+
+    return u
+
+
+def parse_isbn(x: Optional[Union[str, List[str]]]) -> Optional[str]:
+    """parse_isbn turn the isbn into a string.
+
+    Parameters
+    ----------
+    x : Optional[Union[str, List[str]]]
+        An optional string or list of strings
+
+    Returns
+    -------
+    Optional[str]
+        A string ISBN or None
+    """
+
+    i = None
+
+    # Given a list, dump one ISBN
+    if isinstance(x, list) and len(x) > 0:
+        if isinstance(x[0], dict):
+            i = x[0].get("#text")
+        else:
+            i = x[0]
+
+    if isinstance(x, dict):  # noqa: SIM102
+        i = x.get("#text")
+
+    return i
+
+
+def parse_pages(x: Optional[Union[str, list]]) -> Optional[str]:
+    """parse_pages parse the pages field.
+
+    Parameters
+    ----------
+    x : Optional[Union[str, dict]]
+        The pages field
+
+    Returns
+    -------
+    Optional[str]
+        A string of the pages
+    """
+
+    p = None
+
+    if isinstance(x, str):
+        p = x
+
+    if isinstance(x, list):
+        p = ", ".join(x)
+
+    return p
+
+
+def parse_publisher(x: Optional[Union[str, dict]]) -> Optional[str]:
+    """parse_publisher parse the publisher field.
+
+    Parameters
+    ----------
+    x : Optional[Union[str, dict]]
+        The publisher field
+
+    Returns
+    -------
+    Optional[str]
+        A string of the publisher
+    """
+
+    p = None
+
+    if isinstance(x, str):
+        p = x
+
+    if isinstance(x, dict):
+        p = x.get("#text")
+
+    return p
+
+
+def parse_school(x: Optional[Union[str, list]]) -> Optional[str]:
+    """parse_school parse the school field.
+
+    Parameters
+    ----------
+    x : Optional[Union[str, list]]
+        The school field
+
+    Returns
+    -------
+    Optional[str]
+        A string of the school
+    """
+
+    s = None
+
+    if isinstance(x, str):
+        s = x
+
+    if isinstance(x, list):
+        s = ", ".join(x)
+
+    return s
+
+
+def parse_cdrom(x: Optional[Union[str, list]]) -> Optional[str]:
+    """parse_cdrom parse the cdrom field.
+
+    Parameters
+    ----------
+    x : Optional[Union[str, list]]
+        The cdrom field
+
+    Returns
+    -------
+    Optional[str]
+        A string of the cdrom
+    """
+
+    c = None
+
+    if isinstance(x, str):
+        c = x
+
+    if isinstance(x, list):
+        c = ", ".join(x)
+
+    return c
+
+
+def parse_crossref(x: Optional[Union[str, list]]) -> Optional[str]:
+    """parse_crossref Prase the cross reference field, taking the string or first list element.
+
+    Parameters
+    ----------
+    x : Optional[Union[str, list]]
+        The crossref field
+
+    Returns
+    -------
+    Optional[str]
+        A string of the crossref
+    """
+
+    c = None
+
+    if isinstance(x, str):
+        c = x
+
+    if isinstance(x, list) and len(x) > 0:
+        c = x[0]
+
+    return c
+
+
+def parse_year(x: Optional[Union[str, list]]) -> Optional[str]:
+    """parse_year parse the year field.
+
+    Parameters
+    ----------
+    x : Optional[Union[str, list]]
+        The year field
+
+    Returns
+    -------
+    Optional[sr]
+        A stroing of the year
+    """
+
+    y = None
+
+    if isinstance(x, str):
+        y = x
+
+    if isinstance(x, list) and len(x) > 0:
+        y = x[0]
+
+    return y
 
 
 def build_node(x: dict, class_type: str) -> dict:  # noqa: C901
@@ -229,30 +531,10 @@ def build_node(x: dict, class_type: str) -> dict:  # noqa: C901
     if "author" in x:
         node["authors"] = parse_person(x["author"])
 
-    #     if isinstance(x["author"], list):
-    #         node["authors"] = []
-    #         for a in x["author"]:
-    #             node["authors"].append(parse_person(a))
-    #     else:
-    #         node["authors"] = [parse_person(x["author"])]
-
-    # else:
-    #     node["authors"] = []
-
     # Handle "editor" as a list, string or dict and always create an "editors" field as a list of objects
     if "editor" in x:
 
         node["editors"] = parse_person(x["editor"])
-
-    #     if isinstance(x["editor"], list):
-    #         node["editor"] = []
-    #         for a in x["editor"]:
-    #             node["editor"].append(parse_person(a))
-    #     else:
-    #         node["editors"] = [parse_person(x["editor"])]
-
-    # else:
-    #     node["editors"] = []
 
     # Handle "series" which can be a string or dict
     if "series" in x:
@@ -267,10 +549,6 @@ def build_node(x: dict, class_type: str) -> dict:  # noqa: C901
         node["series_text"] = None
         node["series_href"] = None
 
-    # Ensure all cites are a list
-    if "cite" in x:
-        node["cites"] = x["cite"] if isinstance(x["cite"], list) else [x["cite"]]
-
     # Parse the "ee" field which can be str, list(str), dict or list(dict)
     if "ee" in x:
         if isinstance(x["ee"], list):
@@ -281,6 +559,31 @@ def build_node(x: dict, class_type: str) -> dict:  # noqa: C901
     # Parse the note using the new parse_note
     if "note" in x:
         node["note"] = parse_note(x["note"])
+
+    # Parse the string or dict title and get just the string title
+    if "title" in x:
+        node["title"] = parse_title(x["title"])
+
+    if "isbn" in x:
+        node["isbn"] = parse_isbn(x["isbn"])
+
+    if "pages" in x:
+        node["pages"] = parse_pages(x["pages"])
+
+    if "publisher" in x:
+        node["publisher"] = parse_publisher(x["publisher"])
+
+    if "school" in x:
+        node["school"] = parse_school(x["school"])
+
+    if "cdrom" in x:
+        node["cdrom"] = parse_cdrom(x["cdrom"])
+
+    if "crossref" in x:
+        node["crossref"] = parse_crossref(x["crossref"])
+
+    if "year" in x:
+        node["year"] = parse_year(x["year"])
 
     return node
 
@@ -314,34 +617,30 @@ def build_nodes() -> None:
             records = [ujson.loads(record.decode()) for record in tqdm.tqdm(f, total=record_count)]
             dfs[type_] = pd.DataFrame.from_records(records)
 
-            # Build the nodes for each type
-            print(f"Building node for each of {len(types_)} classes ...")
-            for type_, df in dfs.items():
+            print(f"Building nodes for class {type_} ...")
+            type_nodes = []
+            for index, row in tqdm.tqdm(dfs[type_].iterrows(), total=len(dfs[type_].index)):
+                d = row.to_dict()
+                n = build_node(d, type_)
+                nodes.append(n)
 
-                print(f"Building nodes for class {type_} ...")
-                type_nodes = []
-                for index, row in tqdm.tqdm(df.iterrows(), total=len(df.index)):
-                    d = row.to_dict()
-                    n = build_node(d, type_)
-                    nodes.append(n)
+                type_nodes.append(n)
 
-                    type_nodes.append(n)
+            print(f"Creating DataFrame for {type_} ...")
+            type_df = pd.DataFrame(type_nodes)
+            type_df.head()
 
-                print(f"Creating DataFrame for {type_} ...")
-                type_df = pd.DataFrame(type_nodes)
-                type_df.head()
+            print(f"Writing {type_} to Parquet ...")
+            type_df.to_parquet(f"data/types/{type_}.parquet")
 
-                print(f"Writing {type_} to Parquet ...")
-                type_df.to_parquet(f"data/types/{type_}.parquet")
-
-                print(f"Finished writing {type_} to Parquet ...")
-
-            print(f"Class {type_} completed!")
+            print(f"Class {type_} completed! Finished writing {type_} to Parquet ...")
 
     node_df = pd.DataFrame(nodes)
-    node_df.head()
+    print(node_df.head())
 
     node_df.to_parquet("data/dblp.nodes.parquet")
+
+    return node_df
 
 
 def build_edges(node_df: pd.DataFrame) -> None:
@@ -352,7 +651,58 @@ def build_edges(node_df: pd.DataFrame) -> None:
     node_df : pd.DataFrame
         A DataFrame of the uniform schema defined at https://gist.github.com/rjurney/c5637f9d7b3bfb094b79e62a704693da
     """
-    pass
+
+    edges = []
+    types_ = [
+        "article",
+        "book",
+        "incollection",
+        "inproceedings",
+        "mastersthesis",
+        "phdthesis",
+        "proceedings",
+        "www",
+    ]
+
+    for type_ in types_:
+
+        for index, row in tqdm.tqdm(node_df.iterrows(), total=len(node_df.index)):
+            if "authors" in row:
+                for author in row["authors"]:
+
+                    # NEXT LINE NOT DONE
+                    author_entity_id = ""
+                    edges.append(
+                        {
+                            "entity_id": str(uuid.uuid4()),
+                            "entity_type": "edge",
+                            "class_type": "AUTHORED",
+                            "src": row["entity_id"],
+                            "dst": author_entity_id,
+                        }
+                    )
+
+            if "editors" in row:
+                for editor in row["editors"]:
+
+                    # NEXT LINE NOT DONE
+                    editor_entity_id = ""
+                    edges.append(
+                        {
+                            "entity_id": str(uuid.uuid4()),
+                            "entity_type": "edge",
+                            "class_type": "EDITED",
+                            "src": row["entity_id"],
+                            "dst": editor_entity_id,
+                        }
+                    )
+
+    edge_df = pd.DataFrame(edges)
+    print(edge_df.head())
+
+    edge_df.to_parquet("data/dblp.edges.parquet")
+
+    return edge_df
 
 
 def main() -> None:
@@ -364,8 +714,11 @@ def main() -> None:
     download(DBLP_LABELS_URL, gzip_=True)
     # Convert DBLP to JSON Lines
     dblp_to_json_lines(gzip_=True)
+
     # Build a uniform set of network nodes: https://gist.github.com/rjurney/c5637f9d7b3bfb094b79e62a704693da
     build_nodes()
+    # Build a uniform set of network edges
+    build_edges()
 
 
 if __name__ == "__main__":
