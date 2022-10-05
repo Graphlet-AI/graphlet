@@ -14,13 +14,13 @@ import tqdm
 import ujson
 import xmltodict
 
-# from pandera import Check, Column, Field, Index, Series
-from pandera import Field
-from pandera.dtypes import DateTime
-from pandera.typing import Series
-
-from graphlet.etl import NodeSchema
+# from graphlet.etl import NodeSchema
 from graphlet.paths import get_data_dir
+
+# from pandera import Field
+# from pandera.dtypes import DateTime
+# from pandera.typing import Series
+
 
 DBLP_XML_URL = "https://dblp.org/xml/dblp.xml.gz"
 DBLP_LABELS_URL = " https://hpi.de/fileadmin/user_upload/fachgebiete/naumann/projekte/repeatability/DBLP/dblp50000.xml"
@@ -64,28 +64,28 @@ GRAPHLET_COLUMNS = ["entity_id", "entity_type", "entity_class"]
 pd.set_option("display.max_columns", None)
 
 
-class DBLPNodeSchema(NodeSchema):
-    """DBLPNodeSchema - subclass of NodeSchema for DBLP nodes."""
+# class DBLPNodeSchema(NodeSchema):
+#     """DBLPNodeSchema - subclass of NodeSchema for DBLP nodes."""
 
-    key: Series[str] = Field(nullable=False, str_length=(3,))
-    mdate: Series[str] = DateTime(nullable=False)
-    cdate: Series[str] = DateTime(nullable=True)
-    address: Series[str] = Field(nullable=True)
-    booktitle: Series[str] = Field(nullable=True)
-    cdrom: Series[str] = Field(nullable=True)
-    chapter: Series[str] = Field(nullable=True)
-    crossref: Series[str] = Field(nullable=True)
-    isbn: Series[str] = Field(nullable=True)
-    journal: Series[str] = Field(nullable=True)
-    month: Series[str] = Field(nullable=True)
-    number: Series[str] = Field(nullable=True)
-    note: Series[str] = Field(nullable=True)
-    pages: Series[str] = Field(nullable=True)
-    publisher: Series[str] = Field(nullable=True)
-    publnr: Series[str] = Field(nullable=True)
-    school: Series[str] = Field(nullable=True)
-    volume: Series[str] = Field(nullable=True)
-    year: Series[str] = Field(nullable=True)
+#     key: Series[str] = Field(nullable=False, str_length=(3,))
+#     mdate: Series[str] = DateTime(nullable=False)
+#     cdate: Series[str] = DateTime(nullable=True)
+#     address: Series[str] = Field(nullable=True)
+#     booktitle: Series[str] = Field(nullable=True)
+#     cdrom: Series[str] = Field(nullable=True)
+#     chapter: Series[str] = Field(nullable=True)
+#     crossref: Series[str] = Field(nullable=True)
+#     isbn: Series[str] = Field(nullable=True)
+#     journal: Series[str] = Field(nullable=True)
+#     month: Series[str] = Field(nullable=True)
+#     number: Series[str] = Field(nullable=True)
+#     note: Series[str] = Field(nullable=True)
+#     pages: Series[str] = Field(nullable=True)
+#     publisher: Series[str] = Field(nullable=True)
+#     publnr: Series[str] = Field(nullable=True)
+#     school: Series[str] = Field(nullable=True)
+#     volume: Series[str] = Field(nullable=True)
+#     year: Series[str] = Field(nullable=True)
 
 
 def download(url=DBLP_XML_URL, folder: str = get_data_dir(), gzip_=True) -> None:
@@ -183,9 +183,7 @@ def profile_df(df: pd.DataFrame) -> Any:
     #     unique_types = s.unique()
 
 
-def parse_type_util(
-    x: Any, text_key: str, other_key: Optional[str] = None, default_other: Optional[str] = None
-) -> Optional[List[dict]]:
+def parse_type_util(x: Any, text_key: str, other_key: Optional[str] = None, default_other=None) -> List[dict]:
     """parse_type_util Given a list, dict or string, parse it into dict form.
 
     Parameters
@@ -205,7 +203,7 @@ def parse_type_util(
         A dictionary with text_key and other_key fields
     """
 
-    d: Optional[List[dict]] = []
+    d: List[dict] = []
 
     # Strings go into the #text field, then set the other key's default value
     if isinstance(x, str):
@@ -235,7 +233,7 @@ def parse_type_util(
     return d
 
 
-def parse_note(x: Union[str, list, dict]) -> str:
+def parse_note(x: Union[str, list, dict]):
     """parse_note_instance use parse_type_to_dict to prase a note.
 
     Parameters
@@ -245,23 +243,17 @@ def parse_note(x: Union[str, list, dict]) -> str:
 
     Returns
     -------
-    dict
+    str
         A parsed note
     """
 
-    n = None
-
     if isinstance(x, str):
-        n = x
+        return x
 
     if isinstance(x, dict):
-        n = x.get("#text")
+        return x.get("#text")
 
-    # Lists are always empty
-    if isinstance(x, list):
-        n = None
-
-    return n
+    return None
 
 
 def parse_person(x: Union[str, dict]) -> List[dict]:
@@ -306,7 +298,7 @@ def parse_title(x: Optional[Union[str, dict]]) -> Optional[str]:
     return t
 
 
-def parse_url(x: Optional[Union[str, float, list]]) -> Optional[str]:
+def parse_url(x: Optional[Union[str, float, list]]) -> Any:
     """parse_url parse the urls which can be strings, lists of strings or floats (always NaN).
 
     Parameters
@@ -320,13 +312,12 @@ def parse_url(x: Optional[Union[str, float, list]]) -> Optional[str]:
         A string url for the article
     """
 
-    u = None
     if isinstance(x, str):
-        return u
-    if isinstance(x, list) and len(u) > 0:
-        return u[0]
+        return x
+    if isinstance(x, list) and len(x) > 0:
+        return x[0]
 
-    return u
+    return None
 
 
 def parse_isbn(x: Optional[Union[str, List[str]]]) -> Optional[str]:
@@ -640,10 +631,8 @@ def build_nodes() -> None:
 
     node_df.to_parquet("data/dblp.nodes.parquet")
 
-    return node_df
 
-
-def build_edges(node_df: pd.DataFrame) -> None:
+def build_edges() -> None:
     """build_edges given the nodes, build the edges.
 
     Parameters
@@ -651,6 +640,8 @@ def build_edges(node_df: pd.DataFrame) -> None:
     node_df : pd.DataFrame
         A DataFrame of the uniform schema defined at https://gist.github.com/rjurney/c5637f9d7b3bfb094b79e62a704693da
     """
+
+    node_df = pd.read_parquet("data/dblp.nodes.parquet")
 
     edges = []
     types_ = [
@@ -701,8 +692,6 @@ def build_edges(node_df: pd.DataFrame) -> None:
     print(edge_df.head())
 
     edge_df.to_parquet("data/dblp.edges.parquet")
-
-    return edge_df
 
 
 def main() -> None:
