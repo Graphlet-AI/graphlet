@@ -675,6 +675,7 @@ packaging = ">=20.0"
 pandas = ">=1.2.0"
 pyarrow = "*"
 pydantic = "*"
+pyspark = {version = "*", optional = true, markers = "extra == \"pyspark\""}
 typing-inspect = ">=0.6.0"
 wrapt = "*"
 
@@ -1344,7 +1345,7 @@ pygments = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "504b62abcd256b4698eb4bd2241240de29d260ff890b5718f62c321b4c8f00d4"
+content-hash = "df00d6e3441da2baee86d1877f6a3c7a45e2b8704cb0e37d18bbd3bd80129f9e"
 
 [metadata.files]
 appnope = [

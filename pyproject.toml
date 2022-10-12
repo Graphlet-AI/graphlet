@@ -67,7 +67,7 @@ tqdm-stubs = "^0.2.1"
 pandas = "^1.4.3"
 pyarrow = "^9.0.0"
 cloudpickle = "^2.1.0"
-pandera = "^0.11.0"
+pandera = { version = "^0.11.0", extras = ["pyspark"] }
 networkx = "^2.8.6"
 pandas-stubs = "<=1.4.3.220807"
 torch = "^1.12.1"
