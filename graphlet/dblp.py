@@ -619,7 +619,13 @@ def build_nodes() -> None:
 
             print(f"Creating DataFrame for {type_} ...")
             type_df = pd.DataFrame(type_nodes)
+            original_type_cols = type_df.columns
             type_df.head()
+
+            type_df.dropna(axis=1, how="all", inplace=True)
+            filled_type_cols = type_df.columns
+
+            print(f"Ty[pe {type_} dropped these columns: {set(original_type_cols) - set(filled_type_cols)}")
 
             print(f"Writing {type_} to Parquet ...")
             type_df.to_parquet(f"data/types/{type_}.parquet")
@@ -630,6 +636,32 @@ def build_nodes() -> None:
     print(node_df.head())
 
     node_df.to_parquet("data/dblp.nodes.parquet")
+
+
+# def load_node_types() -> None:  # noqa: FNE004
+#     """load_node_types Load a DataFrame for each type of node."""
+
+#     dfs: dict = {}
+#     types_: list = [
+#         "article",
+#         "book",
+#         "incollection",
+#         "inproceedings",
+#         "mastersthesis",
+#         "phdthesis",
+#         "proceedings",
+#         "www",
+#     ]
+
+#     for type_ in types_:
+#         path_: str = f"data/types/{type_}.parquet"
+#         print(f"Opening {type_} records at {path_} ...")
+#         dfs[type_] = pd.read_parquet(path_)
+#         print(f"Finished loading {type_} from Parquet ...")
+
+#         original_cols = set(dfs[type_].columns)
+#         non_empty_cols = set(dfs[type_].dropna(axis=1, how="all", inplace=False).columns)
+#         print(f"Columns dropped: {original_cols.difference(non_empty_cols)}")
 
 
 def build_edges() -> None:
