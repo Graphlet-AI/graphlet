@@ -6,6 +6,7 @@ import uuid
 from typing import Any, List, Optional, Union
 from urllib.parse import unquote, urlparse
 
+import dask.dataframe as dd
 import pandas as pd
 
 # import pandera as pa
@@ -13,6 +14,7 @@ import requests
 import tqdm
 import ujson
 import xmltodict
+from dask.distributed import Client
 
 # from graphlet.etl import NodeSchema
 from graphlet.paths import get_data_dir
@@ -62,6 +64,10 @@ DBLP_COLUMNS = {
 GRAPHLET_COLUMNS = ["entity_id", "entity_type", "entity_class"]
 
 pd.set_option("display.max_columns", None)
+
+# Setup Dask for all 16 cores
+client = Client(n_workers=16, threads_per_worker=1, memory_limit="4GB")
+client
 
 
 # class DBLPNodeSchema(NodeSchema):
@@ -132,6 +138,7 @@ def dblp_to_json_lines(folder: str = get_data_dir(), gzip_: bool = True) -> None
     read_mode = "rb" if gzip_ else "r"
 
     # Takes a lot of RAM but it fits
+    print("Reading entire XML document into memory...")
     xml_string = ""
     if gzip_:
         with gzip.GzipFile(filename=input_path, mode=read_mode) as f:
@@ -142,15 +149,17 @@ def dblp_to_json_lines(folder: str = get_data_dir(), gzip_: bool = True) -> None
 
     # Parse it all at once. The data is under the "dblp" object, one key per type.
     # Dump to JSON Lines as an easily parseable format with gzip compression.
+    print("Writing entire XML dodument into JSON...")
     parsed_xml = xmltodict.parse(xml_string)
     with gzip.GzipFile(filename=f"{folder}/dblp.json.gz", mode="wb") as f:
         xml_string = ujson.dumps(parsed_xml)
         f.write(xml_string.encode())
 
     # Write each type out to its own JSON Lines file
+    print("Writing a JSON Lines file for each type of node...")
     for type_, records in parsed_xml["dblp"].items():
 
-        out_path = f"{folder}/types/{type_}.json"
+        out_path = f"{folder}/types/{type_}.json.gz"
         print(f"Writing DBLP type {type_} to {out_path} ...")
 
         # Write gzip compressed files
@@ -635,7 +644,56 @@ def build_nodes() -> None:
     node_df = pd.DataFrame(nodes)
     print(node_df.head())
 
-    node_df.to_parquet("data/dblp.nodes.parquet")
+    node_df.to_parquet(
+        "data/dblp.nodes.parquet",
+        engine="pyarrow",
+        compression="snappy",
+    )
+
+    # And save a partitioned kind
+    node_df.to_parquet(
+        "data/dblp.nodes.class_type_partition.parquet",
+        engine="pyarrow",
+        compression="snappy",
+        partition_cols=["class_type"],
+    )
+
+
+def random_partition_df(
+    df: Union[pd.DataFrame, pd.Series], partitions: int = 10
+) -> List[Union[pd.DataFrame, pd.Series]]:
+    """random_partition_nodes randomly partition nodes into n=10 (default) partitions.
+
+    This method uses an iterative sample / drop method to partition the nodes. The index
+    of the sample is used to define what to drop from the original DataFrame.
+
+    Parameters
+    ----------
+    nodes : pd.DataFrame
+        pd.DataFrame to be partitioned
+    partitions : int, optional
+        partition count to return, by default 10
+
+    Returns
+    -------
+    typing.List[pd.DataFrame]
+        A list of approximately even pd.DataFrames partitioned from the original DataFrame
+    """ ""
+
+    sample_fraction = 1.0 - (1.0 / partitions)
+    partitioned = []
+
+    for i in range(partitions - 1):
+
+        main_df = df.sample(frac=sample_fraction, random_state=31337)
+
+        # Now take the inverse of the new DataFrame to get the partitioned DataFrame
+        partition_df = df.drop(main_df.index)
+        partitioned.append(partition_df)
+
+        df = main_df
+
+    return partitioned
 
 
 # def load_node_types() -> None:  # noqa: FNE004
@@ -674,6 +732,7 @@ def build_edges() -> None:
     """
 
     node_df = pd.read_parquet("data/dblp.nodes.parquet")
+    # node_ddf = dd.read_parquet("data/dblp.nodes.parquet", engine="pyarrow", chunksize="100MB")
 
     edges = []
     types_ = [
@@ -724,6 +783,15 @@ def build_edges() -> None:
     print(edge_df.head())
 
     edge_df.to_parquet("data/dblp.edges.parquet")
+
+
+def build_dask_nodes() -> dd.DataFrame:
+    """build_dask_nodes Use dask to build the stanard nodes from JSON over 16 cores via apply."""
+
+    ddf: dd.DataFrame = dd.read_json("data/dblp.json.gz", lines=True, compression="gzip")
+
+    # Dummy to make pass
+    return ddf
 
 
 def main() -> None:
