@@ -2,11 +2,13 @@
 
 import gzip
 import os
+import random
 import uuid
 from typing import Any, List, Optional, Union
 from urllib.parse import unquote, urlparse
 
 import dask.dataframe as dd
+import numpy as np
 import pandas as pd
 
 # import pandera as pa
@@ -63,12 +65,21 @@ DBLP_COLUMNS = {
 # Just for docs, not used below
 GRAPHLET_COLUMNS = ["entity_id", "entity_type", "entity_class"]
 
+
+# Predictable randomness
+random.seed(31337)
+np.random.seed(31337)
+
 pd.set_option("display.max_columns", None)
 
-# Setup Dask for all 16 cores
-client = Client(n_workers=16, threads_per_worker=1, memory_limit="4GB")
-client
+# First run: dask scheduler --host 127.0.0.1 --port 9000 --protocol tcp --dashboard --no-show
+client = Client("tcp://127.0.0.1:9000")
 
+# Test Dask
+node_ddf = dd.read_parquet("data/dblp.nodes.parquet", engine="pyarrow", chunksize="50MB")
+node_ddf = node_ddf.repartition(partitions=32)
+node_ddf.count().compute()
+node_ddf.head(10)
 
 # class DBLPNodeSchema(NodeSchema):
 #     """DBLPNodeSchema - subclass of NodeSchema for DBLP nodes."""
@@ -659,6 +670,37 @@ def build_nodes() -> None:
     )
 
 
+def random_np_ids(length, min_id=1, max_id=16) -> np.ndarray:
+    """random_np_ids Generate a columnar numpy array of random IDs.
+
+    Parameters
+    ----------
+    length : int
+        length of the array
+    min_id : int, optional
+        minimum integer value, by default 0
+    max_id : int, optional
+        maximum integer value, by default 16
+
+    Returns
+    -------
+    np.array
+        a numpy array with random integers o
+    """ ""
+
+    min_id = min_id + 1 if min_id == 0 else min_id
+    max_id = max_id + 1 if max_id == 0 else max_id
+
+    print(length, min_id, max_id)
+
+    x = np.empty((length,))
+    if min_id and max_id:
+        x = np.random.randint(low=min_id, high=max_id, size=length)
+    else:
+        x = np.zeros((length,))
+    return x
+
+
 def random_partition_df(
     df: Union[pd.DataFrame, pd.Series], partitions: int = 10
 ) -> List[Union[pd.DataFrame, pd.Series]]:
@@ -732,7 +774,8 @@ def build_edges() -> None:
     """
 
     node_df = pd.read_parquet("data/dblp.nodes.parquet")
-    # node_ddf = dd.read_parquet("data/dblp.nodes.parquet", engine="pyarrow", chunksize="100MB")
+
+    # node_ddf = dd.read_parquet("data/dblp.nodes.parquet", engine="pyarrow", chunksize="10MB")
 
     edges = []
     types_ = [
