@@ -74,13 +74,11 @@ pd.set_option("display.max_columns", None)
 
 # First run: dask scheduler --host 127.0.0.1 --port 9000 --protocol tcp --dashboard --no-show
 client = Client("tcp://127.0.0.1:9000")
+client
 
-# Test Dask
-node_ddf = dd.read_parquet("data/dblp.nodes.parquet", engine="pyarrow", chunksize="50MB")
-node_ddf = node_ddf.repartition(partitions=32)
-node_ddf.count().compute()
-node_ddf.head(10)
 
+# Leftover stuff from trying to define a schema for the DBLP data using pandera
+#
 # class DBLPNodeSchema(NodeSchema):
 #     """DBLPNodeSchema - subclass of NodeSchema for DBLP nodes."""
 
@@ -661,12 +659,15 @@ def build_nodes() -> None:
         compression="snappy",
     )
 
+    # Add a column of random IDs and partiton by it for 16 concurrent cores to read the file
+    node_df["random_id"] = np.random.randint(low=1, high=16, size=len(node_df.index))
+
     # And save a partitioned kind
     node_df.to_parquet(
-        "data/dblp.nodes.class_type_partition.parquet",
+        "data/dblp.nodes.partitioned.parquet",
         engine="pyarrow",
         compression="snappy",
-        partition_cols=["class_type"],
+        partition_cols=["random_id"],
     )
 
 
@@ -699,43 +700,6 @@ def random_np_ids(length, min_id=1, max_id=16) -> np.ndarray:
     else:
         x = np.zeros((length,))
     return x
-
-
-def random_partition_df(
-    df: Union[pd.DataFrame, pd.Series], partitions: int = 10
-) -> List[Union[pd.DataFrame, pd.Series]]:
-    """random_partition_nodes randomly partition nodes into n=10 (default) partitions.
-
-    This method uses an iterative sample / drop method to partition the nodes. The index
-    of the sample is used to define what to drop from the original DataFrame.
-
-    Parameters
-    ----------
-    nodes : pd.DataFrame
-        pd.DataFrame to be partitioned
-    partitions : int, optional
-        partition count to return, by default 10
-
-    Returns
-    -------
-    typing.List[pd.DataFrame]
-        A list of approximately even pd.DataFrames partitioned from the original DataFrame
-    """ ""
-
-    sample_fraction = 1.0 - (1.0 / partitions)
-    partitioned = []
-
-    for i in range(partitions - 1):
-
-        main_df = df.sample(frac=sample_fraction, random_state=31337)
-
-        # Now take the inverse of the new DataFrame to get the partitioned DataFrame
-        partition_df = df.drop(main_df.index)
-        partitioned.append(partition_df)
-
-        df = main_df
-
-    return partitioned
 
 
 # def load_node_types() -> None:  # noqa: FNE004
@@ -832,6 +796,11 @@ def build_dask_nodes() -> dd.DataFrame:
     """build_dask_nodes Use dask to build the stanard nodes from JSON over 16 cores via apply."""
 
     ddf: dd.DataFrame = dd.read_json("data/dblp.json.gz", lines=True, compression="gzip")
+
+    # Test Dask
+    node_ddf = dd.read_parquet("data/dblp.nodes.partitioned.parquet", engine="pyarrow")
+    node_ddf.count().compute()
+    node_ddf.head(10)
 
     # Dummy to make pass
     return ddf
