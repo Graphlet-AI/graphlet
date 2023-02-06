@@ -218,7 +218,7 @@ def test_good_entity_schema(get_good_entity_df) -> None:
 
     @pa.check_types(lazy=True)
     def transform(df: pa.typing.DataFrame[EntitySchema]) -> pa.typing.DataFrame[EntitySchema]:
-        return df
+        return df.sort_index()
 
     transform(get_good_entity_df)
 
@@ -393,7 +393,7 @@ def test_pandera_pyspark(get_good_spark_df):
     class PersonSchema(NodeSchema):
 
         name: pa.typing.Series[str] = pa.Field(
-            str_length=3,
+            ne="Russell Jurney",
         )
 
     class Person:
@@ -403,7 +403,7 @@ def test_pandera_pyspark(get_good_spark_df):
         # column_udf(f, input_column, output_column)
         @classmethod
         @pa.check_output(PersonSchema.to_schema(), "df", lazy=True)
-        def ingest(cls, df: pa.typing.DataFrame) -> pa.typing.DataFrame[PersonSchema]:
+        def ingest(cls, df: pa.typing.DataFrame[NodeSchema]) -> pa.typing.DataFrame[PersonSchema]:
             """ingest Turn an Entity into a Person.
 
             Parameters
@@ -418,7 +418,7 @@ def test_pandera_pyspark(get_good_spark_df):
             """
 
             @staticmethod
-            @F.pandas_udf("string")
+            @F.pandas_udf(T.StringType())
             def add_random_name(s: pd.Series) -> pd.Series:
                 """add_random_name Adds a random name to a DataFrame.
 
@@ -429,8 +429,7 @@ def test_pandera_pyspark(get_good_spark_df):
                 """
                 return s.apply(names.get_full_name)
 
-            pandas_df = df.pandas_api()
-            pandas_df["name"] = pandas_df["entity_id"].apply(add_random_name)
+            df = df.withColumn("name", add_random_name("entity_id"))
 
             # Let's validate those new columns...
             PersonSchema.validate(df)
