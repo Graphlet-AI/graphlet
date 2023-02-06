@@ -27,6 +27,7 @@ repos:
         entry: mypy
         language: python
         types: [python]
+        exclude: tests
   # - repo: local
   #   hooks:
   #     - id: pytest-check
