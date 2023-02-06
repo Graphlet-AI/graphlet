@@ -71,6 +71,7 @@ random.seed(31337)
 np.random.seed(31337)
 
 pd.set_option("display.max_columns", None)
+pd.set_option("display.max_rows", 100)
 
 # First run: dask scheduler --host 127.0.0.1 --port 9000 --protocol tcp --dashboard --no-show
 client = Client("tcp://127.0.0.1:9000")
@@ -729,7 +730,7 @@ def random_np_ids(length, min_id=1, max_id=16) -> np.ndarray:
 
 
 def build_edges() -> None:
-    """build_edges given the nodes, build the edges.
+    """build_edges given the nodes, build the edges. Use Dask so this isn't so slow.
 
     Parameters
     ----------
@@ -737,7 +738,16 @@ def build_edges() -> None:
         A DataFrame of the uniform schema defined at https://gist.github.com/rjurney/c5637f9d7b3bfb094b79e62a704693da
     """
 
-    node_df = pd.read_parquet("data/dblp.nodes.parquet")
+    # Test Dask
+    node_df = pd.read_parquet("data/dblp.nodes.parquet", engine="pyarrow")
+    node_ddf = dd.read_parquet("data/dblp.nodes.partitioned.parquet", engine="pyarrow")
+
+    article_ddf = node_ddf[node_ddf["class_type"] == "article"]
+    author_ddf = node_ddf[node_ddf["class_type"] == "www"]
+    article_ddf, author_ddf
+
+    # node_ddf.count().compute()
+    # node_ddf.head(10)
 
     # node_ddf = dd.read_parquet("data/dblp.nodes.parquet", engine="pyarrow", chunksize="10MB")
 
