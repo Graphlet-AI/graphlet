@@ -738,82 +738,82 @@ def build_edges() -> None:
         A DataFrame of the uniform schema defined at https://gist.github.com/rjurney/c5637f9d7b3bfb094b79e62a704693da
     """
 
-    # Test Dask
-    node_df = pd.read_parquet("data/dblp.nodes.parquet", engine="pyarrow")
-    node_ddf = dd.read_parquet("data/dblp.nodes.partitioned.parquet", engine="pyarrow")
+    # Create edge lists using Dask
+    node_ddf = dd.read_parquet("data/dblp.nodes.partitioned.parquet", engine="pyarrow").drop("random_id", axis=1)
 
-    article_ddf = node_ddf[node_ddf["class_type"] == "article"]
-    author_ddf = node_ddf[node_ddf["class_type"] == "www"]
-    article_ddf, author_ddf
-
-    # node_ddf.count().compute()
-    # node_ddf.head(10)
-
-    # node_ddf = dd.read_parquet("data/dblp.nodes.parquet", engine="pyarrow", chunksize="10MB")
-
-    edges = []
-    types_ = [
-        "article",
-        "book",
-        "incollection",
-        "inproceedings",
-        "mastersthesis",
-        "phdthesis",
-        "proceedings",
-        "www",
+    # Trim the nodes a lot
+    node_ddf = node_ddf[
+        [
+            "class_type",
+            "@key",
+            "@mdate",
+            "@publtype",
+            "booktitle",
+            "journal",
+            "volume",
+            "authors",
+            "ee",
+            "title",
+            "pages",
+            "crossref",
+            "year",
+        ]
     ]
 
-    for type_ in types_:
+    # Kick it in the heels...
+    print(f"Total node count: {len(node_ddf):,}")
 
-        for index, row in tqdm.tqdm(node_df.iterrows(), total=len(node_df.index)):
-            if "authors" in row:
-                for author in row["authors"]:
+    # Project article to author edges
+    article_ddf = node_ddf[node_ddf["class_type"] == "article"]
+    author_ddf = node_ddf[node_ddf["class_type"] == "www"]
+    author_ddf
+    proceedings_ddf = node_ddf[node_ddf["class_type"] == "inproceedings"]
 
-                    # NEXT LINE NOT DONE
-                    author_entity_id = ""
-                    edges.append(
-                        {
-                            "entity_id": str(uuid.uuid4()),
-                            "entity_type": "edge",
-                            "class_type": "AUTHORED",
-                            "src": row["entity_id"],
-                            "dst": author_entity_id,
-                        }
-                    )
+    # Get the article to authors edges by exploding the authors column
+    articles_authors_edges_ddf = article_ddf.explode("authors")[["@key", "authors"]]
+    articles_authors_edges_ddf["authors"] = articles_authors_edges_ddf["authors"].str["#text"]
+    articles_authors_edges_ddf["edge_type"] = "authorship"
+    print(f"Total article --> author edges: {len(articles_authors_edges_ddf):,}")
 
-            if "editors" in row:
-                for editor in row["editors"]:
+    # Get the proceedings to authors edges by exploding the authors column
+    proceedings_authors_edges_ddf = proceedings_ddf.explode("authors")[["@key", "authors"]]
+    proceedings_authors_edges_ddf["authors"] = proceedings_authors_edges_ddf["authors"].str["#text"]
+    proceedings_authors_edges_ddf["edge_type"] = "authorship"
+    print(f"Total proceedings --> author edges: {len(proceedings_authors_edges_ddf):,}")
 
-                    # NEXT LINE NOT DONE
-                    editor_entity_id = ""
-                    edges.append(
-                        {
-                            "entity_id": str(uuid.uuid4()),
-                            "entity_type": "edge",
-                            "class_type": "EDITED",
-                            "src": row["entity_id"],
-                            "dst": editor_entity_id,
-                        }
-                    )
+    # Combine the edges into one type with a label
+    edges_ddf = articles_authors_edges_ddf.append(proceedings_authors_edges_ddf)
 
-    edge_df = pd.DataFrame(edges)
-    print(edge_df.head())
+    # We are done. Count and take a peek!
+    print(f"Total edges: {len(edges_ddf):,}")
+    edges_ddf.head()
 
-    edge_df.to_parquet("data/dblp.edges.parquet")
+    # # Assign a random partition ID
+    # partition_id_ddf = dd.from_pandas(
+    #     pd.DataFrame(range(1, edge_count + 1), columns=["partition_id"]),
+    #     npartitions=edges_ddf.npartitions,
+    # )
+    # edges_ddf["partition_id"] = partition_id_ddf["partition_id"]
+
+    edges_ddf.repartition(16).to_parquet(
+        "data/dblp.edges.parquet",
+        compression="snappy",
+        engine="pyarrow",
+        write_index=False,
+        overwrite=True,
+    )
 
 
 def build_dask_nodes() -> dd.DataFrame:
-    """build_dask_nodes Use dask to build the stanard nodes from JSON over 16 cores via apply."""
-
-    ddf: dd.DataFrame = dd.read_json("data/dblp.json.gz", lines=True, compression="gzip")
+    """build_dask_nodes Use dask to build the standard nodes from JSON over 16 cores via apply."""
 
     # Test Dask
-    node_ddf = dd.read_parquet("data/dblp.nodes.partitioned.parquet", engine="pyarrow")
-    node_ddf.count().compute()
+    node_ddf: dd.DataFrame = dd.read_parquet("data/dblp.nodes.partitioned.parquet", engine="pyarrow")
+    print(f"Total node count: {len(node_ddf):,}")
     node_ddf.head(10)
 
     # Dummy to make pass
-    return ddf
+    return node_ddf
 
 
 def main() -> None:
